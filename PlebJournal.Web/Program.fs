@@ -30,7 +30,8 @@ open DbUp
 
 let ensureDbExists (svc: IServiceProvider) =
     let logger = svc.GetService<ILoggerFactory>().CreateLogger("DbUp")
-    
+    let conn = connString()
+    logger.LogInformation("Conn string {conn}", conn)
     try
         EnsureDatabase.For.PostgresqlDatabase(connString())
     with ex ->
