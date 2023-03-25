@@ -1,0 +1,75 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <PropertyGroup>
+        <TargetFramework>net7.0</TargetFramework>
+        <RootNamespace>Stacker.Web</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Compile Include="Config.fs" />
+        <Compile Include="Json.fs" />
+        <None Include="Data\SetupData.fsx" />
+        <EmbeddedResource Include="Db\Migrations\01_IdentitySchema.sql">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </EmbeddedResource>
+        <EmbeddedResource Include="Db\Migrations\02_Transactions.sql">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </EmbeddedResource>
+        <EmbeddedResource Include="Db\Migrations\03_Prices.sql">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </EmbeddedResource>
+        <EmbeddedResource Include="Db\Migrations\04_CurrentPrice.sql">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </EmbeddedResource>
+        <Compile Include="Db\Postgres.fs" />
+        <Compile Include="Repository.fs" />
+        <Compile Include="CoinGecko.fs" />
+        <Compile Include="Migrations\*.fs" />
+        <Compile Include="Jobs\CurrentPrice.fs" />
+        <Compile Include="Jobs\CreateUser.fs" />
+        <Compile Include="Jobs\InitializeHistoricalPrices.fs" />
+        <Compile Include="Jobs\QuartzConfig.fs" />
+        <Compile Include="Import.fs" />
+        <Compile Include="Models.fs" />
+        <Compile Include="Views\Layout.fs" />
+        <Compile Include="Views\Partials.fs" />
+        <Compile Include="Views\Pages\Index.fs" />
+        <Compile Include="Views\Pages\Transactions.fs" />
+        <Compile Include="Views\Pages\Indicators.fs" />
+        <Compile Include="Views\Pages\Workbench.fs" />
+        <Compile Include="Views\Pages\Login.fs" />
+        <Compile Include="Views\Pages\Twitter.fs" />
+        <Compile Include="Views\Pages\DcaCalculator.fs" />
+        <Compile Include="Views\Pages\CreateAccount.fs" />
+        <Compile Include="Handlers.fs" />
+        <Compile Include="Routes.fs" />
+        <Compile Include="Program.fs" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\PlebJournal.Domain\PlebJournal.Domain.fsproj" />
+      <ProjectReference Include="..\PlebJournal.Identity\PlebJournal.Identity.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="CoinGeckoAsyncApi" Version="1.7.0" />
+      <PackageReference Include="dbup-postgresql" Version="5.0.8" />
+      <PackageReference Include="FSharp.Data" Version="5.0.2" />
+      <PackageReference Include="FSharp.SystemTextJson" Version="1.0.7" />
+      <PackageReference Include="FsHttp" Version="10.0.0" />
+      <PackageReference Include="FsToolkit.ErrorHandling" Version="4.2.1" />
+      <PackageReference Include="Giraffe.Htmx" Version="1.8.4" />
+      <PackageReference Include="Giraffe.ViewEngine.Htmx" Version="1.8.4" />
+      <PackageReference Include="Npgsql.FSharp" Version="5.5.0" />
+      <PackageReference Include="Quartz" Version="3.5.0" />
+      <PackageReference Include="Quartz.AspNetCore" Version="3.5.0" />
+      <PackageReference Include="Saturn" Version="0.16.1" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Content Update="wwwroot\css\style.css">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Content>
+    </ItemGroup>
+
+</Project>

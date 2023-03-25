@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "PlebJournal.Web", "PlebJournal.Web\PlebJournal.Web.fsproj", "{B7562E00-2920-453C-A602-E4A714377CF9}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "PlebJournal.Domain", "PlebJournal.Domain\PlebJournal.Domain.fsproj", "{F48DD949-11F3-42E9-941A-CED9EB1EA8BE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlebJournal.Identity", "PlebJournal.Identity\PlebJournal.Identity.csproj", "{9B4FA95B-CD07-4545-BC10-9506BAF8D36C}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "PlebJournal.Domain.Tests", "PlebJournal.Domain.Tests\PlebJournal.Domain.Tests.fsproj", "{A4EC5912-35E9-4F8C-988C-E978B505C39B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B7562E00-2920-453C-A602-E4A714377CF9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B7562E00-2920-453C-A602-E4A714377CF9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B7562E00-2920-453C-A602-E4A714377CF9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B7562E00-2920-453C-A602-E4A714377CF9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F48DD949-11F3-42E9-941A-CED9EB1EA8BE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F48DD949-11F3-42E9-941A-CED9EB1EA8BE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F48DD949-11F3-42E9-941A-CED9EB1EA8BE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F48DD949-11F3-42E9-941A-CED9EB1EA8BE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9B4FA95B-CD07-4545-BC10-9506BAF8D36C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9B4FA95B-CD07-4545-BC10-9506BAF8D36C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9B4FA95B-CD07-4545-BC10-9506BAF8D36C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9B4FA95B-CD07-4545-BC10-9506BAF8D36C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A4EC5912-35E9-4F8C-988C-E978B505C39B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A4EC5912-35E9-4F8C-988C-E978B505C39B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A4EC5912-35E9-4F8C-988C-E978B505C39B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A4EC5912-35E9-4F8C-988C-E978B505C39B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
