@@ -20,9 +20,6 @@ create table "AspNetUsers"
     "AccessFailedCount"    integer not null
 );
 
-alter table "AspNetUsers"
-    owner to postgres;
-
 create index "EmailIndex"
     on "AspNetUsers" ("NormalizedEmail");
 
@@ -44,9 +41,6 @@ create table "AspNetUserTokens"
         primary key ("UserId", "LoginProvider", "Name")
 );
 
-alter table "AspNetUserTokens"
-    owner to postgres;
-
 -- auto-generated definition
 create table "AspNetRoles"
 (
@@ -57,9 +51,6 @@ create table "AspNetRoles"
     "NormalizedName"   varchar(256),
     "ConcurrencyStamp" text
 );
-
-alter table "AspNetRoles"
-    owner to postgres;
 
 create unique index "RoleNameIndex"
     on "AspNetRoles" ("NormalizedName");
@@ -79,9 +70,6 @@ create table "AspNetUserRoles"
         primary key ("UserId", "RoleId")
 );
 
-alter table "AspNetUserRoles"
-    owner to postgres;
-
 create index "IX_AspNetUserRoles_RoleId"
     on "AspNetUserRoles" ("RoleId");
 
@@ -98,9 +86,6 @@ create table "AspNetUserLogins"
     constraint "PK_AspNetUserLogins"
         primary key ("LoginProvider", "ProviderKey")
 );
-
-alter table "AspNetUserLogins"
-    owner to postgres;
 
 create index "IX_AspNetUserLogins_UserId"
     on "AspNetUserLogins" ("UserId");
@@ -119,9 +104,6 @@ create table "AspNetUserClaims"
     "ClaimValue" text
 );
 
-alter table "AspNetUserClaims"
-    owner to postgres;
-
 create index "IX_AspNetUserClaims_UserId"
     on "AspNetUserClaims" ("UserId");
 
@@ -138,9 +120,6 @@ create table "AspNetRoleClaims"
     "ClaimType"  text,
     "ClaimValue" text
 );
-
-alter table "AspNetRoleClaims"
-    owner to postgres;
 
 create index "IX_AspNetRoleClaims_RoleId"
     on "AspNetRoleClaims" ("RoleId");
