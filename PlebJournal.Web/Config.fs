@@ -19,7 +19,5 @@ let connString () =
     let password = dbConfig["Password"]
     let port = dbConfig["Port"]
     let db = dbConfig["Database"]
-    let con = $"postgres://{userId}:{password}@{host}/{db}"
+    $"User ID={userId};Password={password};Host={host};Port={port};Database={db};"
     
-    //$"User ID={userId};Password={password};Host={host};Port={port};Database={db};"
-    con

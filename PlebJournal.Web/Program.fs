@@ -39,7 +39,7 @@ let ensureDbExists (svc: IServiceProvider) =
         logger.LogInformation("Could not create postgres db. Maybe it already exists.")
     
     let upgrade =
-        DeployChanges.To.PostgresqlDatabase(connString())
+        DeployChanges.To.PostgresqlDatabase(conn, "public")
             .WithScriptsEmbeddedInAssembly(Assembly.GetExecutingAssembly())
             .LogToAutodetectedLog()
             .Build()
