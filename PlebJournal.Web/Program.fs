@@ -31,7 +31,11 @@ open DbUp
 let ensureDbExists (svc: IServiceProvider) =
     let logger = svc.GetService<ILoggerFactory>().CreateLogger("DbUp")
     
-    EnsureDatabase.For.PostgresqlDatabase(connString())
+    try
+        EnsureDatabase.For.PostgresqlDatabase(connString())
+    with ex ->
+        logger.LogWarning(ex.Message)
+        logger.LogInformation("Could not create postgres db. Maybe it already exists.")
     
     let upgrade =
         DeployChanges.To.PostgresqlDatabase(connString())
@@ -57,7 +61,7 @@ let app =
     application {
         use_static "wwwroot"
         use_router Routes.topRouter
-        //service_config addBackgroundJobs
+        service_config addBackgroundJobs
         service_config addIdentityDb
         app_config configureApp
     }
