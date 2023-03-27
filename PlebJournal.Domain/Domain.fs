@@ -49,7 +49,7 @@ module Domain =
         | CAD
         | USD
         | EUR
-        member this.ToString() =
+        override this.ToString() =
             match this with
             | CAD -> "CAD"
             | USD -> "USD"

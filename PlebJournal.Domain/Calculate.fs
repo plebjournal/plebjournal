@@ -170,14 +170,15 @@ module Calculate =
         | Decrease of decimal
 
     let numericalChange a b =
-        if b >= a then
+        if a = 0.0m || b = 0.0m then
+            None
+        else if b >= a then
             let increase = b - a
-            increase / a |> (*) 100m |> oneDecimal |> Increase
+            increase / a |> (*) 100m |> oneDecimal |> Increase |> Some
         else
             let decrease = a - b
-            decrease / a |> (*) 100m |> oneDecimal |> Decrease
+            decrease / a |> (*) 100m |> oneDecimal |> Decrease |> Some
 
     let percentChange (currentPrice: decimal) (tx: Transaction) =
-        match tx.PricePerCoin with
-        | None -> None
-        | Some (purchasePrice, _) -> numericalChange purchasePrice currentPrice |> Some
+        tx.PricePerCoin
+        |> Option.bind (fun (purchasePrice, _) -> numericalChange purchasePrice currentPrice)

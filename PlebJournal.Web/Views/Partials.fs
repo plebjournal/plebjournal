@@ -251,9 +251,10 @@ let historyTable (txs: (Change option * Transaction) list) (selectedHorizon: TxH
 let btcBalance balance (cadValue: decimal<btc> option) change =
     let percentChangeSpan (change) =
         match change with
-        | Increase percent ->
+        | None -> span [] []
+        | Some (Increase percent) ->
             span [ _class "text-green d-inline-flex lh-1"; _title "6 Mo" ] [ str $"+{percent}%%" ]
-        | Decrease percent ->
+        | Some (Decrease percent) ->
             span [ _class "text-red d-inline-flex lh-1"; _title "6 Mo" ] [ str $"-{percent}%%" ]
 
     div
@@ -275,12 +276,13 @@ let btcBalance balance (cadValue: decimal<btc> option) change =
                     div [ _class "subheader" ] [ str $"${value} CAD" ]
                 | None -> div [] [] ] ]
 
-let fiatValue balance (cadValue: decimal<btc> option) (change: Change) =
+let fiatValue balance (cadValue: decimal<btc> option) change =
     let percentChangeSpan (change) =
         match change with
-        | Increase percent ->
+        | None -> span [] []
+        | Some (Increase percent) ->
             span [ _class "text-green d-inline-flex lh-1"; _title "7D" ] [ str $"+{percent}%%" ]
-        | Decrease percent ->
+        | Some (Decrease percent) ->
             span [ _class "text-red d-inline-flex lh-1"; _title "7D" ] [ str $"-{percent}%%" ]
     
     div

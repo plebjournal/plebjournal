@@ -130,6 +130,7 @@ module Partials =
                 let change = Calculate.numericalChange (decimal totalValueLastWeek) (decimal totalValueToday)
                 return! htmlView (Partials.fiatValue res (Some totalValueToday) change) next ctx
             }
+    
     let chart: HttpHandler =
         fun next ctx ->
             let horizon =
