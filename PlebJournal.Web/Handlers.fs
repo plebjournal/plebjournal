@@ -206,13 +206,13 @@ module Form =
         fun next ctx ->
             let logger = ctx.GetLogger("Login")
             let signInManager = ctx.GetService<SignInManager<IdentityUser>>()
-            let backToLoginForm = setStatusCode 401 >=> htmlView Login.loginForm
+            let backToLoginForm msg = setStatusCode 422 >=> htmlView (Login.loginForm (Some msg)) 
             task {
                 let! loginForm = ctx.TryBindFormAsync<Login>()
                 match loginForm with
                 | Error e ->
                     logger.LogInformation("Failed bind signin form {err}", e)
-                    return! backToLoginForm next ctx
+                    return! backToLoginForm "Error, please try again" next ctx
                 | Ok form ->
                     let! res = signInManager.PasswordSignInAsync(
                         form.Username,
@@ -223,10 +223,10 @@ module Form =
                     logger.LogInformation("Login result {res}", res)
                     match res.Succeeded with
                     | true ->
-                        let a = withHxRedirect "/" >=> htmlView Login.loginForm
+                        let a = withHxRedirect "/" >=> htmlView (Login.loginForm None)
                         return! a next ctx
                     | false -> 
-                        return! backToLoginForm next ctx
+                        return! backToLoginForm "Invalid username/password" next ctx
             }
     
     let upload (userId: Guid) : HttpHandler =

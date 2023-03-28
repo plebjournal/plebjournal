@@ -36,7 +36,7 @@ let private htmlHead =
           script [ _src "/js/toast.js" ] []
           script [ _src "/js/portfolio-summary-chart.js" ] []
           script [ _src "/js/fiat-value-chart.js" ] []
-          title [] [ str "Stacker" ] ]
+          title [] [ str "Pleb Journal" ] ]
 
 
 let private header =

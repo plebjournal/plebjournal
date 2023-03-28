@@ -1,8 +1,27 @@
 body {
     font-family: monospace;
-    
+}
+
+.show {
+    display: block;
 }
 
 .btn {
     font-family: monospace;
+}
+
+.htmx-request a {
+    display: none;
+}
+
+.htmx-request button {
+    display: none;
+}
+
+.loading-spinner {
+    display: none;
+}
+
+.htmx-request .loading-spinner  {
+    display: block;
 }

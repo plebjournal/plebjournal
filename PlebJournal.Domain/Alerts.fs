@@ -10,13 +10,19 @@ module Alerts =
         "[ stacking intensifies ]"
         "[ laser eyes intensify ]"
         "The stacking will continue until moral improves"
-        "Do you even Bitcoin?"
+        "The stacking will continue until the money improves"
+        "Stay humble and stack sats"
+        "See you in the citadel"
+        "Fix the money, fix the world"
+        "Get those sats off an exchange"
+        "End the Fed"
+        "Freedom money"
     |]
     
     let incomeMessages = [|
-        "Hyper-bitcoiner"
+        "Hyper-Bitcoiner"
         "The Bitcoin economy grows"
-        "'Bitcion can buy many peanuts'"
+        "'Bitcoin can buy many peanuts'"
     |]
     
     let sellMessages = [|

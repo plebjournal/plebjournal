@@ -1,6 +1,7 @@
 module Stacker.Web.Views.Partials
 
 open System
+open System.Globalization
 open Stacker.Calculate
 open Stacker.Charting.Domain
 open Stacker.Domain
@@ -292,7 +293,7 @@ let fiatValue balance (cadValue: decimal<btc> option) change =
               [ div [ _class "subheader" ] [ str "Fiat Value" ]
                 match cadValue with
                 | Some v ->
-                    let value = v |> decimal |> fun d -> d.ToString("C")
+                    let value = v |> decimal |> fun d -> d.ToString("C2", CultureInfo.CurrentCulture)
 
                     div [ _class "d-flex align-items-baseline" ] [
                         div [ _class "h1 mb-3 me-3" ] [ str $"{value} CAD" ]
