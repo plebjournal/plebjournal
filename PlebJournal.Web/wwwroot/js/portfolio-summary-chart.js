@@ -27,6 +27,8 @@ const loadPortfolioSummary = async (horizon) => {
   Plotly.newPlot(chart, traces, layout)
 };
 
+htmx.on('tx-created', () => loadPortfolioSummary());
+
 htmx.on('show-chart', (evnt) => {
   loadPortfolioSummary(evnt.detail.value);
 });

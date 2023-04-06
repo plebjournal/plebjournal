@@ -17,4 +17,6 @@ const loadFiatValueChart = async (horizon) => {
   Plotly.newPlot(chart, traces, layout)
 };
 
+htmx.on('tx-created', () => loadFiatValueChart());
+
 htmx.on("show-chart-fiat-value", (evnt) => loadFiatValueChart(evnt.detail.value));
