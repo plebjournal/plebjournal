@@ -293,10 +293,10 @@ let fiatValue balance (cadValue: decimal<btc> option) change =
               [ div [ _class "subheader" ] [ str "Fiat Value" ]
                 match cadValue with
                 | Some v ->
-                    let value = v |> decimal |> fun d -> d.ToString("C2", CultureInfo.CurrentCulture)
+                    let value = v |> decimal
 
                     div [ _class "d-flex align-items-baseline" ] [
-                        div [ _class "h1 mb-3 me-3" ] [ str $"{value} CAD" ]
+                        div [ _class "h1 mb-3 me-3" ] [ str $"""${value.ToString("F2")} CAD""" ]
                         div [ _class "me-auto" ] [
                             percentChangeSpan change
                         ]
