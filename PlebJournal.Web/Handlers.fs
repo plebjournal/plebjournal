@@ -435,11 +435,11 @@ module Api =
                     |> List.where (fun (d, _, _) -> d.Date >= horizon)
                 
                 let btcStack =
-                    txs |> Calculate.foldDailyTransactions
+                    txs
+                    |> Calculate.foldDailyTransactions
                     |> Calculate.movingSumOfTxs
-                    |> Seq.toList
-                    |> List.sortBy (fun (d, _) -> d)
-                    |> List.where (fun (d,  _) -> d >= horizon)
+                    |> Calculate.fillDatesWhichHaveNoTx
+                    |> Array.where (fun (d, _) -> d >= horizon)
                 
                 let fiatTrace = Map<string, obj> [
                     "name", "Fiat Value"
@@ -451,8 +451,8 @@ module Api =
                 let btcStackTrace = Map<string, obj> [
                     "name", "Btc Value"
                     "mode", "lines"
-                    "x", btcStack |> Seq.map fst |> Seq.toList :> obj
-                    "y", btcStack |> Seq.map snd |> Seq.toList :> obj
+                    "x", btcStack |> Array.map fst |> Array.toList :> obj
+                    "y", btcStack |> Array.map snd |> Array.toList :> obj
                     "yaxis", "y2"
                 ]
                 

@@ -53,6 +53,54 @@ module Calculate =
                     (date, amount + lastAmount) :: s)
             []
         |> Seq.sortBy fst
+        
+    let fillDatesWhichHaveNoTx (txs: (DateTime * decimal<btc>) seq) =
+        let daysBetween (d:DateTime) (d2: DateTime) =
+            d2.Subtract(d).Days - 1
+            
+        let genDates (startDate: DateTime) (days: int) =
+            [| for i in 1 .. days do startDate.AddDays(i) |]
+            
+        let generateBetween (tx1: DateTime * decimal<btc>) (tx2: DateTime * decimal<btc>) =
+            let (hDate, hStack) = tx1
+            let (elDate, txs) = tx2                                      
+            let between = daysBetween hDate elDate                      
+            let generated = genDates hDate between                      
+            let withBtc = generated |> Array.map (fun d -> (d, hStack)) 
+            let appended = Array.append withBtc [| tx2 |]                
+            Array.append [| (hDate, hStack) |] appended                 
+
+        match Seq.toArray txs with
+        | [|  |] -> [|  |]
+        | [| (date, tx) |] ->
+            let between = daysBetween date DateTime.Now
+            let generated = genDates date between
+            let withTxs = generated |> Array.map (fun date -> (date, tx))
+            Array.append [| date, tx |] withTxs
+        | txs ->
+            let (lastDate, lastTx) = Array.last txs
+            let withFinalDate =
+                if lastDate > DateTime.Now then
+                    lastDate
+                else DateTime.Now.Date
+                
+            let txs' = Array.append txs [| (withFinalDate, lastTx) |]
+            
+            let folded =
+                Array.fold (fun state el ->
+                    match state with
+                    | [|  |] ->
+                        [| el |]
+                    | [| head |] ->                  
+                        generateBetween head el
+                    | arr ->
+                        let tail = Array.last arr
+                        let generated = generateBetween tail el
+                        Array.append arr generated
+                        )
+                    [|  |]
+                    txs'
+            folded 
 
     let portfolioHistoricalValue (txs: Transaction list) (historicalUsd: PriceAtDate array) =
         if txs.IsEmpty then [] else
