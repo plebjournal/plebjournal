@@ -18,5 +18,6 @@ const loadFiatValueChart = async (horizon) => {
 };
 
 htmx.on('tx-created', () => loadFiatValueChart());
+htmx.on('tx-deleted', () => loadFiatValueChart());
 
 htmx.on("show-chart-fiat-value", (evnt) => loadFiatValueChart(evnt.detail.value));

@@ -28,6 +28,7 @@ const loadPortfolioSummary = async (horizon) => {
 };
 
 htmx.on('tx-created', () => loadPortfolioSummary());
+htmx.on('tx-deleted', () => loadPortfolioSummary());
 
 htmx.on('show-chart', (evnt) => {
   loadPortfolioSummary(evnt.detail.value);

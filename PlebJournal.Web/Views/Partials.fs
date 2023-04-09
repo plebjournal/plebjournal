@@ -141,14 +141,11 @@ let txsForm =
 let boughtBtcModal =
     div [] [
         div [
-            _id "modal-backdrop"
             _class "modal modal-backdrop fade show"
             _style "display:block;"
-            _onclick "closeModal()"
         ] []
         div
             [ _class "modal show modal-blur"
-              _id "bought-btc-form"
               _style "display:block;"
               _tabindex "-1" ] [
                 div [ _class "modal-dialog" ] [
@@ -163,6 +160,89 @@ let boughtBtcModal =
                                 txsForm
                             ] ] ]
                    ]
+    ]
+    
+let deleteModal (t: Transaction) =
+    div [] [
+        div [
+            _class "modal modal-backdrop fade show"
+            _style "display:block;"
+        ] []
+        div
+            [ _class "modal show modal-blur"
+              _style "display:block;"
+              _tabindex "-1" ] [
+                div [ _class "modal-dialog" ] [
+                    div [ _class "modal-content"; ] [
+                        div [ _class "modal-header" ] [
+                            h1 [ _class "modal-title" ] [ str "Delete Transaction" ]
+                            button [ _type "button"; _class "btn-close"; _onclick "closeModal()" ] []
+                        ]
+                        div [ _class "modal-body" ] [
+                            form [
+                                _hxPost "/delete"
+                                _hxTarget "this"
+                                _hxSwap "outerHtml"
+                            ] [
+                                div [ _class "row mb-3" ] [
+                                    div [ _class "col-sm-12" ] [
+                                        p [] [ str "Are you sure you want to delete this Transaction?" ]
+                                    ]
+                                ]
+                                div [ _class "row mb-3" ] [
+                                    div [ _class "col col-sm-4" ] [
+                                        div [ _class "datagrid-item" ] [
+                                            div [ _class "datagrid-title" ] [
+                                                str "Tx Type"
+                                            ]
+                                            div [ _class "datagrid-content" ] [
+                                                str $"{t.TxName}"
+                                            ]
+                                        ]    
+                                    ]
+                                    
+                                    div [ _class "col col-sm-4" ] [
+                                        div [ _class "datagrid-item" ] [
+                                            div [ _class "datagrid-title" ] [
+                                                str "Tx Date"
+                                            ]
+                                            div [ _class "datagrid-content" ] [
+                                                str $"{t.DateTime.ToShortDateString()}"
+                                            ]
+                                        ]    
+                                    ]
+                                    div [ _class "col col-sm-4" ] [
+                                        div [ _class "datagrid-item" ] [
+                                            div [ _class "datagrid-title" ] [
+                                                str "Tx Amount"
+                                            ]
+                                            div [ _class "datagrid-content" ] [
+                                                let formatted = t.Amount |> decimal |> fun d -> d.ToString("F8")
+                                                str formatted
+                                            ]
+                                        ]
+                                    ]
+                                ]
+                                
+                                div [ _class "row" ] [
+                                    div [ _class "col" ] [
+                                        button [ _class "btn btn-secondary"; _onclick "closeModal()" ] [ str "Cancel" ]
+                                    ]
+                                    div [ _class "col-auto" ] [
+                                        button [
+                                            _type "submit"
+                                            _class "btn btn-danger"
+                                            _hxDelete $"/tx/delete/{t.Id}"
+                                        ] [
+                                            str "Delete"
+                                        ]
+                                    ]
+                                ]
+                            ]
+                        ]
+                    ]
+                ]
+            ]
     ]
 
 let txToast () =
@@ -217,6 +297,7 @@ let historyTable (txs: (Change option * Transaction) list) (selectedHorizon: TxH
                             th [] [ str "Fiat Rate" ]
                             th [] [ str "% change" ]
                             th [] [ str "Date" ]
+                            th [] []
                         ]
                     ]
                     tbody
@@ -230,23 +311,48 @@ let historyTable (txs: (Change option * Transaction) list) (selectedHorizon: TxH
                                    
                                    let fiatAmount =
                                        function
-                                       | Some (f: FiatAmount) -> f.Amount.ToString()
+                                       | Some (f: FiatAmount) -> f.Amount.ToString("C2", CultureInfo.CreateSpecificCulture("en-US"))
                                        | None -> ""
 
                                    let fiatCurrent =
                                        function
                                        | Some f -> f.Currency.ToString()
                                        | None -> ""
-                                   td [] [ i [ _class "ti ti-coin-bitcoin text-yellow"; _alt "BTC" ] []; str $"{tx.Amount}" ]
+                                       
+                                   let btcAmount = tx.Amount |> decimal |> fun d -> d.ToString("F8")
+                                   td [] [ i [ _class "ti ti-coin-bitcoin text-yellow"; _alt "BTC" ] []; str btcAmount ]
 
                                    td [] [ str $"{fiatAmount tx.Fiat} {fiatCurrent tx.Fiat}" ]
                                    let pricePerCoin =
                                        tx.PricePerCoin
-                                       |> Option.map (fun (d, fiat) -> $"{d |> fun d -> Decimal.Round(d, 2)} - {fiat.ToString()}")
+                                       |> Option.map (fun (d, fiat) ->
+                                           d
+                                           |> fun d -> d.ToString("C2", CultureInfo.CreateSpecificCulture("en-US"))
+                                           |> fun str -> $"{str} - CAD"
+                                           )
+                                       
                                        |> Option.defaultValue ""
                                    td [] [ str $"{pricePerCoin}" ]
                                    td [ ] [ changeColumn change ]
                                    td [] [ str $"{tx.DateTime.ToShortDateString()}" ]
+                                   td [] [
+                                       div [ _class "nav-item dropdown" ] [
+                                            a [ _class "nav-link"; _href "#"; _data "bs-toggle" "dropdown" ] [
+                                                i [ _class "ti ti-pencil" ] []
+                                            ]
+                                            div [ _class "dropdown-menu dropdown-menu-end dropdown-menu-arrow" ] [
+                                               a [ _class "dropdown-item"; _href "#" ] [ str "Details" ]
+                                               a [ _class "dropdown-item"; _href "#" ] [ str "Edit" ]
+                                               a [
+                                                   _href "#"
+                                                   _class "dropdown-item"
+                                                   _hxTrigger "click"
+                                                   _hxTarget "#modal-container"
+                                                   _hxGet $"/tx/delete/{tx.Id}"
+                                               ] [ str "Delete" ]
+                                            ]
+                                        ]
+                                   ]
                                     ])) ] ] ]
 
 let btcBalance balance (cadValue: decimal<btc> option) change =
@@ -452,7 +558,7 @@ let chartContainer (selectedHorizon: TxHistoryHorizon option) =
                             _type "button"
                             _class "form-select"
                             _hxGet "/chart"
-                            _hxTrigger "change, tx-created"
+                            _hxTrigger "change, tx-created, tx-deleted"
                             _hxTarget "#portfolio-chart-container"
                             _hxSwap "outerHTML"
                         ] [
@@ -506,6 +612,5 @@ let fiatChartContainer (selectedHorizon: TxHistoryHorizon option) =
                 ]
             ]
             div [ _id "fiat-value-chart"] []
-            // script [ _src "/js/fiat-value-chart.js" ] []
         ]
     ]

@@ -36,6 +36,7 @@ let private htmlHead =
           script [ _src "/js/toast.js" ] []
           script [ _src "/js/portfolio-summary-chart.js" ] []
           script [ _src "/js/fiat-value-chart.js" ] []
+          script [ _src "/js/modal-helper.js" ] []
           title [] [ str "Pleb Journal" ] ]
 
 
@@ -134,6 +135,7 @@ let withLayout (pageContent: XmlNode list) =
             header
             navbar
             div [ _class "page-wrapper" ] [
+                div [ _id "modal-container" ] []
                 div [ _class "page-body" ] [ div [ _class "container" ] pageContent ]
                 toast
                 

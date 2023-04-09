@@ -55,6 +55,20 @@ module Partials =
             htmlView (Partials.userNav user) next ctx
     let boughtBitcoinForm: HttpHandler =
         withHxTriggerAfterSettle "open-modal" >=> htmlView Partials.boughtBtcModal
+        
+    let deleteForm (txId: Guid, userId: Guid): HttpHandler =
+        fun next ctx ->
+            task {
+                let! tx = UserTransactions.Read.getTxById userId txId
+                
+                let resp =
+                    match tx with
+                    | None -> RequestErrors.NOT_FOUND "tx not found" 
+                    | Some t ->  htmlView (Partials.deleteModal t)
+                    
+                return! resp next ctx
+            }
+        
     let txSuccessfulToast: HttpHandler = htmlView (Partials.txToast ())
     let importForm: HttpHandler = htmlView (Partials.importForm [])
 
@@ -258,13 +272,27 @@ module Form =
         let toDomain (createTx: CreateBtcTransaction) =
             match createTx.Type with
             | Buy ->
-                Domain.Buy(createTx.Date, createBtcAmount createTx, { Amount = createTx.FiatAmount; Currency = createTx.Fiat })
+                Domain.Buy
+                    { Id = Guid.NewGuid()
+                      Date = createTx.Date
+                      Amount = createBtcAmount createTx
+                      Fiat = { Amount = createTx.FiatAmount; Currency = createTx.Fiat } }
             | Income ->
-                Domain.Income(createTx.Date, createBtcAmount createTx)
+                Domain.Income
+                    { Id = Guid.NewGuid()
+                      Date = createTx.Date
+                      Amount = createBtcAmount createTx }
             | Sell ->
-                Domain.Sell(createTx.Date, createBtcAmount createTx, { Amount = createTx.FiatAmount; Currency = createTx.Fiat })
+                Domain.Sell
+                    { Id = Guid.NewGuid()
+                      Date = createTx.Date
+                      Amount = createBtcAmount createTx
+                      Fiat = { Amount = createTx.FiatAmount; Currency = createTx.Fiat } }
             | Spend ->
-                Domain.Spend(createTx.Date, createBtcAmount createTx)
+                Domain.Spend
+                    { Id = Guid.NewGuid()
+                      Date = createTx.Date
+                      Amount = createBtcAmount createTx }
         
         fun next ctx ->
             task {
@@ -315,7 +343,15 @@ module Form =
                 
                 return! (withHxTrigger "dca-calculated" >=> (htmlView (Partials.dcaCalculatorForm req))) next ctx
             }
-
+    
+    let deleteTx (txId: Guid, userId: Guid): HttpHandler =
+        fun next ctx ->
+            task {
+                do! UserTransactions.Delete.deleteTxForUser txId userId
+                let trigger = withHxTrigger "tx-deleted"
+                return!
+                    (trigger >=> Successful.OK ()) next ctx
+            }
 module Api =
     let chartApi (userId: Guid): HttpHandler =
         fun next ctx ->

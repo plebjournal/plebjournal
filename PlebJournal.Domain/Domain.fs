@@ -58,33 +58,61 @@ module Domain =
     type FiatAmount =
         { Amount: decimal
           Currency: Fiat }
+       
+    type Income =
+        { Id: Guid
+          Date: DateTime
+          Amount: BtcAmount }
+    
+    type Spend =
+        { Id: Guid
+          Date: DateTime
+          Amount: BtcAmount }
+    type Buy =
+        { Id: Guid
+          Date: DateTime
+          Amount: BtcAmount
+          Fiat: FiatAmount }
+        
+    type Sell =
+        { Id: Guid
+          Date: DateTime
+          Amount: BtcAmount
+          Fiat: FiatAmount }
 
     type Transaction =
-        | Income of DateTime * BtcAmount
-        | Spend of DateTime * BtcAmount
-        | Buy of DateTime * BtcAmount * FiatAmount
-        | Sell of DateTime * BtcAmount * FiatAmount
-
+        | Income of Income
+        | Spend of Spend
+        | Buy of Buy
+        | Sell of Sell
+        
+        member this.Id =
+            match this with
+            | Spend { Id = id } -> id
+            | Income { Id = id } -> id
+            | Buy { Id = id } -> id
+            | Sell { Id = id } -> id
+        
         member this.DateTime =
             match this with
-            | Spend (d, _) -> d
-            | Income (d, _) -> d
-            | Buy (d, _, _) -> d
-            | Sell (d, _, _) -> d
+            | Spend s -> s.Date
+            | Income i -> i.Date
+            | Buy b -> b.Date
+            | Sell s -> s.Date
 
         member this.Amount =
             match this with
-            | Spend (_, amt) -> amt.AsBtc
-            | Income (_, amt) -> amt.AsBtc
-            | Buy (_, amt, _) -> amt.AsBtc
-            | Sell (_, amt, _) -> amt.AsBtc
+            | Spend s -> s.Amount.AsBtc
+            | Income i -> i.Amount.AsBtc
+            | Buy b -> b.Amount.AsBtc
+            | Sell s -> s.Amount.AsBtc
 
         member this.Fiat =
             match this with
             | Spend _ -> None
             | Income _ -> None
-            | Buy (_, _, fiat) -> Some fiat
-            | Sell (_, _, fiat) -> Some fiat
+            | Buy b -> Some b.Fiat
+            | Sell s -> Some s.Fiat
 
         member this.TxName =
             match this with

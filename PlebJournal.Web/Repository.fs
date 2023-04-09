@@ -36,29 +36,29 @@ module PostgresDb =
                     
         let txToDao (tx: Transaction) =
             match tx with
-            | Buy(dateTime, btcAmount, fiatAmount) ->
-                { Id = Guid.NewGuid()
+            | Buy { Id = id; Date = dateTime; Amount = btcAmount; Fiat = fiatAmount } ->
+                { Id = id
                   Date = dateTime
                   Type = "BUY"
                   BtcAmount = btcAmount.AsBtc
                   FiatAmount = Some fiatAmount.Amount
                   FiatCode = fiatAmount.Currency.ToString() |> Some }
-            | Sell(dateTime, btcAmount, fiatAmount) ->
-                { Id = Guid.NewGuid()
+            | Sell { Id = id; Date = dateTime; Amount = btcAmount; Fiat = fiatAmount }->
+                { Id = id
                   Date = dateTime
                   Type = "SELL"
                   BtcAmount = btcAmount.AsBtc
                   FiatAmount = fiatAmount.Amount |> Some
                   FiatCode = fiatAmount.Currency.ToString() |> Some }
-            | Income(dateTime, btcAmount) ->
-                { Id = Guid.NewGuid()
+            | Income { Id = id; Date = dateTime; Amount = btcAmount } ->
+                { Id = id
                   Date = dateTime
                   Type = "INCOME"
                   BtcAmount = btcAmount.AsBtc
                   FiatAmount = None
                   FiatCode = None }
-            | Spend(dateTime, btcAmount) ->
-                { Id = Guid.NewGuid()
+            | Spend { Id = id; Date = dateTime; Amount = btcAmount } ->
+                { Id = id
                   Date = dateTime
                   Type = tx.TxName
                   BtcAmount = btcAmount.AsBtc
@@ -78,16 +78,16 @@ module PostgresDb =
                 let fiat =
                     { Amount = dao.FiatAmount.Value
                       Currency = parseFiat dao.FiatCode.Value }
-                Buy (dao.Date, (Btc dao.BtcAmount), fiat)
+                Buy { Id = dao.Id; Date = dao.Date; Amount = (Btc dao.BtcAmount); Fiat = fiat }
             | "sell" ->
                 let fiat =
                     { Amount = dao.FiatAmount.Value
                       Currency = parseFiat dao.FiatCode.Value }
-                Sell (dao.Date, (Btc dao.BtcAmount), fiat)
+                Sell { Id = dao.Id; Date = dao.Date; Amount = (Btc dao.BtcAmount); Fiat = fiat }
             | "income" ->
-                Income (dao.Date, (Btc dao.BtcAmount))
+                Income { Id = dao.Id; Date = dao.Date; Amount = (Btc dao.BtcAmount) }
             | "spend" ->
-                Spend (dao.Date, (Btc dao.BtcAmount))
+                Spend { Id = dao.Id; Date = dao.Date; Amount = (Btc dao.BtcAmount) }
             | _ -> failwith $"Unsupported transaction type {dao.Type}"
         
         module Insert =
@@ -191,7 +191,58 @@ module PostgresDb =
                                           FiatCode = row.textOrNone "fiat_code" })
                     return txsDao |> List.map txFromDao
                 }
-    
+            
+            
+            let private getTxByIdQuery =
+                """
+                    select t.id, t.date, t.type, t.btc_amount, t.fiat_amount, t.fiat_code
+                    from user_transactions ut
+                    inner join transactions t on t.id = ut.transaction_id
+                    where t.id = @id AND ut.user_id = @userId
+                """
+            
+            let getTxById (userId: Guid) (txId: Guid) =
+                task {
+                    let! tx = postgresQuery
+                                getTxByIdQuery
+                                [ "id", Sql.uuid txId
+                                  "userId", Sql.string (userId.ToString())]
+                                (fun row ->
+                                    { Id = row.uuid "id"
+                                      Date = row.dateTime "date"
+                                      Type = row.text "type"
+                                      BtcAmount = row.decimal "btc_amount" |> (*) 1.0m<btc>
+                                      FiatAmount = row.decimalOrNone "fiat_amount"
+                                      FiatCode = row.textOrNone "fiat_code" })
+                    return
+                        match tx with
+                        | [ t ] -> txFromDao t |> Some
+                        | [  ] -> None
+                        | txs -> txs.Head |> txFromDao |> Some
+                }
+        module Delete =
+            let private deleteUserTxQuery =
+                """
+                delete from user_transactions
+                where user_id = @userId AND transaction_id = @txId 
+                """
+            let private deleteTxQuery =
+                """
+                delete from transactions where id = @txId
+                """
+            
+            let deleteTxForUser (txId: Guid) (userId: Guid) =
+                task {
+                    let! _ = postgresNonQuery deleteUserTxQuery [
+                        "txId", Sql.uuid txId
+                        "userId", Sql.string (userId.ToString())
+                    ]
+                    
+                    let! _ = postgresNonQuery deleteTxQuery [                   
+                        "txId", Sql.uuid txId 
+                    ]
+                    return ()
+                }
     module Prices =
         open Db.Postgres
         

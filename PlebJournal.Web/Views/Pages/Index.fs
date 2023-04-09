@@ -4,7 +4,6 @@ open Giraffe.ViewEngine.Htmx
 open Giraffe.ViewEngine
     
 let indexPage = [
-    div [ _id "modal-container" ] []
     div [ _hxGet "/import"; _hxTrigger "revealed"] []
     
     div [ _class "row mb-4" ] [
@@ -48,9 +47,7 @@ let indexPage = [
     
     div [ _class "row" ] [
         div [ _class "col-sm-12" ] [
-            div [ _hxGet "/history"; _hxTrigger "revealed, tx-created from:body" ] []
+            div [ _hxGet "/history"; _hxTrigger "revealed, tx-created from:body, tx-deleted from:body" ] []
         ]
     ]
-        
-    script [ _src "/js/bought-btc-form-modal.js" ] []
 ]

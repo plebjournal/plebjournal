@@ -25,10 +25,10 @@ module Calculate =
         |> Seq.fold
             (fun s tx ->
                 match tx with
-                | Spend (_, btcAmount) -> s - btcAmount.AsBtc
-                | Income (_, btcAmount) -> s + btcAmount.AsBtc
-                | Buy (_, b, _) -> s + b.AsBtc
-                | Sell (_, b, _) -> s - b.AsBtc)
+                | Spend spend -> s - spend.Amount.AsBtc
+                | Income i -> s + i.Amount.AsBtc
+                | Buy b -> s + b.Amount.AsBtc
+                | Sell sell -> s - sell.Amount.AsBtc)
             0.0m<btc>
 
     let foldDailyTransactions (txs: Transaction seq) =
@@ -61,30 +61,26 @@ module Calculate =
         let genDates (startDate: DateTime) (days: int) =
             [| for i in 1 .. days do startDate.AddDays(i) |]
             
-        let generateBetween (tx1: DateTime * decimal<btc>) (tx2: DateTime * decimal<btc>) =
-            let (hDate, hStack) = tx1
-            let (elDate, txs) = tx2                                      
-            let between = daysBetween hDate elDate                      
-            let generated = genDates hDate between                      
-            let withBtc = generated |> Array.map (fun d -> (d, hStack)) 
-            let appended = Array.append withBtc [| tx2 |]                
-            Array.append [| (hDate, hStack) |] appended                 
+        let generateBetween (firstTx: DateTime * decimal<btc>) (laterDate: DateTime * decimal<btc>) =
+            let earlier, btcAmount = firstTx
+            let later, txs = laterDate                                      
+            let between = daysBetween earlier later                      
+            let generated = genDates earlier between                      
+            let withBtc = generated |> Array.map (fun d -> (d, btcAmount)) 
+            let appended = Array.append withBtc [| laterDate |]                
+            Array.append [| (earlier, btcAmount) |] appended                 
 
         match Seq.toArray txs with
         | [|  |] -> [|  |]
-        | [| (date, tx) |] ->
-            let between = daysBetween date DateTime.Now
-            let generated = genDates date between
-            let withTxs = generated |> Array.map (fun date -> (date, tx))
-            Array.append [| date, tx |] withTxs
+        | [| (date, tx) |] -> generateBetween (date, tx) (DateTime.Now, tx)
         | txs ->
-            let (lastDate, lastTx) = Array.last txs
-            let withFinalDate =
+            let lastDate, lastTx = Array.last txs
+            let generateDateUntil =
                 if lastDate > DateTime.Now then
                     lastDate
                 else DateTime.Now.Date
                 
-            let txs' = Array.append txs [| (withFinalDate, lastTx) |]
+            let txsWithLatestDate = Array.append txs [| (generateDateUntil, lastTx) |]
             
             let folded =
                 Array.fold (fun state el ->
@@ -99,7 +95,7 @@ module Calculate =
                         Array.append arr generated
                         )
                     [|  |]
-                    txs'
+                    txsWithLatestDate
             folded 
 
     let portfolioHistoricalValue (txs: Transaction list) (historicalUsd: PriceAtDate array) =

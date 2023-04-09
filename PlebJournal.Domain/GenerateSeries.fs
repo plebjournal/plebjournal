@@ -59,12 +59,11 @@ module GenerateSeries =
             | Some price ->
                 let btcAmount = fiatAmountUsd / price |> fun btc -> Btc(btc * 1.0m<btc>)
 
-                Buy(
-                    d,
-                    btcAmount,
-                    { Currency = USD
-                      Amount = fiatAmountUsd }
-                )
+                Buy
+                    { Id = Guid.Empty
+                      Date = d
+                      Amount = btcAmount
+                      Fiat = { Currency = USD; Amount = fiatAmountUsd } }
                 |> Some
             | None -> None)
         |> List.somes

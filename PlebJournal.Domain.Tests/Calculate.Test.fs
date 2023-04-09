@@ -11,9 +11,9 @@ module Fold =
     [<Fact>]
     let ``should sum transactions`` () =
         [
-            Income(DateTime(2023, 01, 01), BtcAmount.OfBtc 0.5m)
-            Buy(DateTime(2023, 01, 01), BtcAmount.OfBtc(1.0m), { Amount = 1000m; Currency = USD })
-            Spend(DateTime(2023, 01, 02), BtcAmount.OfBtc 0.75m)
+            Income { Id = Guid.Empty; Date = DateTime(2023, 01, 01); Amount =  BtcAmount.OfBtc 0.5m }
+            Buy { Id = Guid.Empty; Date = DateTime(2023, 01, 01); Amount = BtcAmount.OfBtc(1.0m); Fiat = { Amount = 1000m; Currency = USD } }
+            Spend { Id = Guid.Empty; Date = DateTime(2023, 01, 02); Amount =  BtcAmount.OfBtc 0.75m }
         ]
         |> foldTxs
         |> should equal 0.750m<btc>
@@ -22,9 +22,9 @@ module FoldDailyTransactions =
     [<Fact>]
     let ``should fold transactions on the same day``() =
         [
-            Income(DateTime(2023, 01, 01), BtcAmount.OfBtc 0.5m)
-            Buy(DateTime(2023, 01, 01), BtcAmount.OfBtc(1.0m), { Amount = 1000m; Currency = USD })
-            Spend(DateTime(2023, 01, 02), BtcAmount.OfBtc 0.75m)
+            Income { Id = Guid.Empty; Date = DateTime(2023, 01, 01); Amount =  BtcAmount.OfBtc 0.5m }
+            Buy { Id = Guid.Empty; Date = DateTime(2023, 01, 01); Amount = BtcAmount.OfBtc(1.0m); Fiat = { Amount = 1000m; Currency = USD } }
+            Spend { Id = Guid.Empty; Date = DateTime(2023, 01, 02); Amount =  BtcAmount.OfBtc 0.75m }
         ]
         |> foldDailyTransactions
         |> Seq.toList
@@ -37,8 +37,9 @@ module PortfolioHistoricalValue =
     [<Fact>]
     let ``should generate a series of dates and value for a portfolio`` () =
         let txs = [
-            Buy(DateTime(2023, 01, 01), BtcAmount.OfBtc(1.0m), { Amount = 1000m; Currency = USD })
-            Buy(DateTime(2023, 01, 05), BtcAmount.OfBtc(1.0m), { Amount = 1250m; Currency = USD })
+            Buy { Id = Guid.Empty; Date = DateTime(2023, 01, 01); Amount = BtcAmount.OfBtc(1.0m); Fiat = { Amount = 1000m; Currency = USD } }
+            Buy { Id = Guid.Empty; Date = DateTime(2023, 01, 05); Amount = BtcAmount.OfBtc(1.0m); Fiat = { Amount = 1250m; Currency = USD } }
+
         ]
         
         let usdPriceHistory = [|
@@ -77,24 +78,24 @@ module PortfolioHistoricalValue =
 module PercentChange =
     [<Fact>]
     let ``should calculate percent increase``() =
-        Buy(DateTime(2023, 01, 01), BtcAmount.OfBtc(1.0m), { Amount = 1000m; Currency = USD })
+        Buy { Id = Guid.Empty; Date = DateTime(2023, 01, 01); Amount = BtcAmount.OfBtc(1.0m); Fiat = { Amount = 1000m; Currency = USD } }
         |> percentChange 2000m
         |> should equal (Some (Increase 100.0m))
     
     [<Fact>]
     let ``should calculate small percent increase``() =
-        Buy(DateTime(2023, 01, 01), BtcAmount.OfBtc(1.0m), { Amount = 1000m; Currency = USD })
+        Buy { Id = Guid.Empty; Date = DateTime(2023, 01, 01); Amount = BtcAmount.OfBtc(1.0m); Fiat = { Amount = 1000m; Currency = USD } }
         |> percentChange 1020m
         |> should equal (Some (Increase 2.0m))    
     
     [<Fact>]
     let ``should calculate percent decrease`` () =
-        Buy(DateTime(2023, 01, 01), BtcAmount.OfBtc(1.0m), { Amount = 1000m; Currency = USD })        
+        Buy { Id = Guid.Empty; Date = DateTime(2023, 01, 01); Amount = BtcAmount.OfBtc(1.0m); Fiat = { Amount = 1000m; Currency = USD } }        
         |> percentChange 500m
         |> should equal (Some (Decrease 50m))
         
     [<Fact>]
     let ``should handle no change in price`` () =
-        Buy(DateTime(2023, 01, 01), BtcAmount.OfBtc(1.0m), { Amount = 1000m; Currency = USD })        
+        Buy { Id = Guid.Empty; Date = DateTime(2023, 01, 01); Amount = BtcAmount.OfBtc(1.0m); Fiat = { Amount = 1000m; Currency = USD } }        
         |> percentChange 1000m
         |> should equal (Some (Increase 0m))

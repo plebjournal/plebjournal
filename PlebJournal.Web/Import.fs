@@ -61,12 +61,12 @@ module Parse =
                 let! fiat = parseFiat sellCurrency
                 let fiatAmount = { Amount = sellAmount; Currency = fiat }
                 let btcAmount = Btc(buyAmount * 1.0m<btc>)
-                return Buy(csvImport.Date, btcAmount, fiatAmount)
+                return Buy { Id = Guid.NewGuid(); Date = csvImport.Date; Amount =  btcAmount; Fiat = fiatAmount }
             else if sellCurrency = "btc" then
                 let! fiat = parseFiat buyCurrency
                 let fiatAmount = { Amount = buyAmount; Currency = fiat }
                 let btcAmount = Btc(sellAmount * 1.0m<btc>)
-                return Sell(csvImport.Date, btcAmount, fiatAmount)
+                return Sell { Id = Guid.NewGuid(); Date = csvImport.Date; Amount =  btcAmount; Fiat = fiatAmount }
             else
                 return! Error $"Unsupported Trade Pair {buyCurrency} - {sellCurrency}"
          }
@@ -74,7 +74,7 @@ module Parse =
     let parseIncome (csvImport: CsvImport) =
         validation {
             let! incomeAmount = csvImport.Buy |> requiredField |> Result.map (fun d -> d * 1.0m<btc>)
-            return Income(csvImport.Date, Btc(incomeAmount))
+            return Income { Id = Guid.NewGuid(); Date = csvImport.Date; Amount =  Btc(incomeAmount) }
         }
         
     let parseMining (csvImport: CsvImport) =
@@ -83,7 +83,7 @@ module Parse =
             let! currency = csvImport.BuyCurrency |> requiredField |> Result.map (fun s -> s.ToLower())
             let! btc = mustBeBtc currency
             let! miningAmount = csvImport.Buy |> requiredField |> Result.map (fun d -> d * 1.0m<btc>)
-            return Income(csvImport.Date, Btc(miningAmount))
+            return Income { Id = Guid.NewGuid(); Date = csvImport.Date; Amount = Btc(miningAmount)}
         }
     
 let toDomain (csvImport: CsvImport) =
