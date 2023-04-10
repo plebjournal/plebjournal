@@ -244,6 +244,115 @@ let deleteModal (t: Transaction) =
                 ]
             ]
     ]
+    
+let txDetails (t: Transaction) (change: Change option) =
+    div [] [
+        div [
+            _class "modal modal-backdrop fade show"
+            _style "display:block;"
+        ] []
+        div
+            [ _class "modal show modal-blur"
+              _style "display:block;"
+              _tabindex "-1" ] [
+                div [ _class "modal-dialog" ] [
+                    div [ _class "modal-content"; ] [
+                        div [ _class "modal-header" ] [
+                            h1 [ _class "modal-title" ] [ str "Transaction Details" ]
+                            button [ _type "button"; _class "btn-close"; _onclick "closeModal()" ] []
+                        ]
+                        div [ _class "modal-body" ] [
+                            div [ _class "row mb-3" ] [
+                                div [ _class "col col-sm-4" ] [
+                                    div [ _class "datagrid-item" ] [
+                                        div [ _class "datagrid-title" ] [
+                                            str "Tx Type"
+                                        ]
+                                        div [ _class "datagrid-content" ] [
+                                            str $"{t.TxName}"
+                                        ]
+                                    ]    
+                                ]
+                                
+                                div [ _class "col col-sm-4" ] [
+                                    div [ _class "datagrid-item" ] [
+                                        div [ _class "datagrid-title" ] [
+                                            str "Tx Date"
+                                        ]
+                                        div [ _class "datagrid-content" ] [
+                                            str $"{t.DateTime.ToShortDateString()}"
+                                        ]
+                                    ]    
+                                ]
+                                div [ _class "col col-sm-4" ] [
+                                    div [ _class "datagrid-item" ] [
+                                        div [ _class "datagrid-title" ] [
+                                            str "Tx Amount"
+                                        ]
+                                        div [ _class "datagrid-content" ] [
+                                            let formatted = t.Amount |> decimal |> fun d -> d.ToString("F8")
+                                            i [ _class "ti ti-coin-bitcoin text-yellow"; _alt "BTC" ] []
+                                            str formatted
+                                        ]
+                                    ]
+                                ]
+                            ]
+                            div [ _class "row mb-3" ] [
+                                div [ _class "col col-sm-4" ] [
+                                    div [ _class "datagrid-item" ] [
+                                        div [ _class "datagrid-title" ] [
+                                            str "Fiat"
+                                        ]
+                                        div [ _class "datagrid-content" ] [
+                                            let fiat =
+                                                match t.Fiat with
+                                                | Some f ->
+                                                    let asStr = f.Amount.ToString("C2")
+                                                    $"{asStr} - {f.Currency}"
+                                                | None -> ""
+                                            
+                                            str fiat
+                                        ]
+                                    ]    
+                                ]
+                                
+                                div [ _class "col col-sm-4" ] [
+                                    div [ _class "datagrid-item" ] [
+                                        div [ _class "datagrid-title" ] [
+                                            str "Fiat Price Per Coin"
+                                        ]
+                                        div [ _class "datagrid-content" ] [
+                                            match t.PricePerCoin with
+                                            | None -> div [] []
+                                            | Some (amt, fiat) ->
+                                                let amtStr = amt.ToString("C2")
+                                                str $"{amtStr} - {fiat}"
+                                        ]
+                                    ]    
+                                ]
+                                
+                                div [ _class "col col-sm-4" ] [
+                                    div [ _class "datagrid-item" ] [
+                                        div [ _class "datagrid-title" ] [
+                                            str "% Change"
+                                        ]
+                                        div [ _class "datagrid-content" ] [
+                                            match change with
+                                            | None -> div [] []
+                                            | Some (Increase amt) ->
+                                                div [ _style "color: green;" ] [ str $"{amt}%%" ]
+                                            | Some (Decrease percent) ->
+                                                div [] [ str $"{percent}%%" ]
+                                        ]
+                                    ]    
+                                ]
+                            ]
+                        ]
+                    ]
+                ]
+            ]
+    ]
+
 
 let txToast () =
     div [ _class "position-fixed  bottom-0 end-0 p-3" ] [
@@ -252,7 +361,6 @@ let txToast () =
             div [ _class "text-muted" ] [ str "Transaction saved successfully" ]
         ]    
     ]
-    
         
 let historyTable (txs: (Change option * Transaction) list) (selectedHorizon: TxHistoryHorizon option) =
     let changeColumn (change: Change option) =
@@ -320,7 +428,10 @@ let historyTable (txs: (Change option * Transaction) list) (selectedHorizon: TxH
                                        | None -> ""
                                        
                                    let btcAmount = tx.Amount |> decimal |> fun d -> d.ToString("F8")
-                                   td [] [ i [ _class "ti ti-coin-bitcoin text-yellow"; _alt "BTC" ] []; str btcAmount ]
+                                   td [] [
+                                       i [ _class "ti ti-coin-bitcoin text-yellow"; _alt "BTC" ] []
+                                       str btcAmount
+                                   ]
 
                                    td [] [ str $"{fiatAmount tx.Fiat} {fiatCurrent tx.Fiat}" ]
                                    let pricePerCoin =
@@ -341,7 +452,13 @@ let historyTable (txs: (Change option * Transaction) list) (selectedHorizon: TxH
                                                 i [ _class "ti ti-pencil" ] []
                                             ]
                                             div [ _class "dropdown-menu dropdown-menu-end dropdown-menu-arrow" ] [
-                                               a [ _class "dropdown-item"; _href "#" ] [ str "Details" ]
+                                               a [
+                                                    _class "dropdown-item"
+                                                    _href "#"
+                                                    _hxTrigger "click"
+                                                    _hxTarget "#modal-container"
+                                                    _hxGet $"/tx/details/{tx.Id}"
+                                                ] [ str "Details" ]
                                                a [ _class "dropdown-item"; _href "#" ] [ str "Edit" ]
                                                a [
                                                    _href "#"
@@ -402,7 +519,10 @@ let fiatValue balance (cadValue: decimal<btc> option) change =
                     let value = v |> decimal
 
                     div [ _class "d-flex align-items-baseline" ] [
-                        div [ _class "h1 mb-3 me-3" ] [ str $"""${value.ToString("F2")} CAD""" ]
+                        div [ _class "h1 mb-3 me-3" ] [
+                            let valueStr = value.ToString("C2")
+                            str $"{valueStr} CAD"
+                        ]
                         div [ _class "me-auto" ] [
                             percentChangeSpan change
                         ]

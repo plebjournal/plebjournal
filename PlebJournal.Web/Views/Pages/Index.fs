@@ -29,10 +29,10 @@ let indexPage = [
         ]
     ]
     div [ _class "row mb-4 row-cards" ] [       
-        div [ _class "col-sm-12 col-md-6 col-lg-4"; _id "balance-container" ] [
+        div [ _class "col-sm-12 col-md-6"; _id "balance-container" ] [
             div [ _hxGet "/balance"; _hxTrigger "revealed, tx-created from:body" ] [ ]
         ]
-        div [ _class "col-sm-12 col-md-6 col-lg-4"; _id "fait-value-container" ] [
+        div [ _class "col-sm-12 col-md-6"; _id "fait-value-container" ] [
             div [ _hxGet "/fiat-value"; _hxTrigger "revealed, tx-created from:body" ] [ ]
         ]
     ]

@@ -35,6 +35,7 @@ let secureRoutes = withAuth >=> router {
     get "/work-bench" Handlers.Pages.workbench
     get "/dca-calculator" Handlers.Pages.dcaCalculator
     get "/bought" Handlers.Partials.boughtBitcoinForm
+    getf "/tx/details/%O" (fun (txId: Guid) -> withUserId (fun userId -> Handlers.Partials.txDetails(txId, userId)))
     getf "/tx/delete/%O" (fun (txId: Guid) -> withUserId (fun userId -> Handlers.Partials.deleteForm (txId, userId)))
     deletef "/tx/delete/%O" (fun (txId: Guid) -> withUserId (fun userId -> Handlers.Form.deleteTx (txId, userId)))
     get "/tx-successful-toast" Handlers.Partials.txSuccessfulToast

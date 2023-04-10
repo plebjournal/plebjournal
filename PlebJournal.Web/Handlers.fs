@@ -56,6 +56,20 @@ module Partials =
     let boughtBitcoinForm: HttpHandler =
         withHxTriggerAfterSettle "open-modal" >=> htmlView Partials.boughtBtcModal
         
+    let txDetails (txId: Guid, userId: Guid) =
+        fun next ctx ->
+            task {
+                let! tx = UserTransactions.Read.getTxById userId txId
+                let! price = CurrentPrice.Read.getCurrentPrice CAD
+                
+                return!
+                    match tx with
+                    | None -> RequestErrors.NOT_FOUND "not found" next ctx
+                    | Some t ->
+                        let change = Calculate.percentChange price t
+                        htmlView (Partials.txDetails t change) next ctx
+            }
+        
     let deleteForm (txId: Guid, userId: Guid): HttpHandler =
         fun next ctx ->
             task {
