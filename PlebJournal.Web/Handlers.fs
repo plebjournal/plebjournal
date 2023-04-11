@@ -52,9 +52,9 @@ module Partials =
                 | true ->
                     let claim = ctx.User.Claims |> Seq.tryFind (fun c -> c.Type = ClaimTypes.Name)
                     claim |> Option.map (fun c -> c.Value)
-            htmlView (Partials.userNav user) next ctx
+            htmlView (Partials.User.userNav user) next ctx
     let boughtBitcoinForm: HttpHandler =
-        withHxTriggerAfterSettle "open-modal" >=> htmlView Partials.boughtBtcModal
+        withHxTriggerAfterSettle "open-modal" >=> htmlView Partials.Forms.boughtBtcModal
         
     let txDetails (txId: Guid, userId: Guid) =
         fun next ctx ->
@@ -67,7 +67,7 @@ module Partials =
                     | None -> RequestErrors.NOT_FOUND "not found" next ctx
                     | Some t ->
                         let change = Calculate.percentChange price t
-                        htmlView (Partials.txDetails t change) next ctx
+                        htmlView (Partials.Forms.txDetails t change) next ctx
             }
         
     let deleteForm (txId: Guid, userId: Guid): HttpHandler =
@@ -78,7 +78,7 @@ module Partials =
                 let resp =
                     match tx with
                     | None -> RequestErrors.NOT_FOUND "tx not found" 
-                    | Some t ->  htmlView (Partials.deleteModal t)
+                    | Some t ->  htmlView (Partials.Forms.deleteModal t)
                     
                 return! resp next ctx
             }
@@ -91,13 +91,13 @@ module Partials =
                 let resp =
                     match t with
                     | None -> RequestErrors.NOT_FOUND "Tx not found"
-                    | Some tx -> htmlView (Partials.editModal tx)
+                    | Some tx -> htmlView (Partials.Forms.editModal tx)
                 
                 return! resp next ctx
             }
         
-    let txSuccessfulToast: HttpHandler = htmlView (Partials.txToast ())
-    let importForm: HttpHandler = htmlView (Partials.importForm [])
+    let txSuccessfulToast: HttpHandler = htmlView (Partials.Toast.txToast ())
+    let importForm: HttpHandler = htmlView (Partials.Forms.importForm [])
 
     let history (userId: Guid): HttpHandler =
         fun next ctx ->
@@ -129,7 +129,7 @@ module Partials =
                     txs
                     |> List.map (fun tx -> Calculate.percentChange currentPrice tx, tx)
                     
-                return! htmlView (Partials.historyTable withPercentChange horizon) next ctx
+                return! htmlView (Partials.TxHistory.historyTable withPercentChange horizon) next ctx
             }
 
     let balance (userId: Guid): HttpHandler =
@@ -154,8 +154,9 @@ module Partials =
                 let change = Calculate.numericalChange
                                  (decimal totalStack6MonthsAgo.Total)
                                  (decimal totalStackToday.Total)
-                    
-                return! htmlView (Partials.btcBalance totalStackToday (Some value) change) next ctx
+                                                     
+                return!
+                    htmlView (Partials.Widgets.btcBalance totalStackToday (Some value) change) next ctx
             }
     let fiatValue (userId: Guid) : HttpHandler =
         fun next ctx ->
@@ -169,7 +170,7 @@ module Partials =
                 let totalValueLastWeek = res.Total * oneWeekAgo
                 let totalValueToday = res.Total * cadPrice
                 let change = Calculate.numericalChange (decimal totalValueLastWeek) (decimal totalValueToday)
-                return! htmlView (Partials.fiatValue res (Some totalValueToday) change) next ctx
+                return! htmlView (Partials.Widgets.fiatValue res (Some totalValueToday) change) next ctx
             }
     
     let chart: HttpHandler =
@@ -182,7 +183,7 @@ module Partials =
                 "show-chart", horizon
             ]
             let txHorizon = TxHistoryHorizon.parse horizon
-            let handler = triggerChart >=> htmlView (Partials.chartContainer txHorizon)
+            let handler = triggerChart >=> htmlView (Partials.Charts.chartContainer txHorizon)
             handler next ctx
         
     let fiatValueChart: HttpHandler =
@@ -195,14 +196,14 @@ module Partials =
                 "show-chart-fiat-value", horizon
             ]
             let txHorizon = TxHistoryHorizon.parse horizon
-            let handler = triggerChart >=> htmlView (Partials.fiatChartContainer txHorizon)            
+            let handler = triggerChart >=> htmlView (Partials.Charts.fiatChartContainer txHorizon)            
             handler next ctx
             
-    let workbenchChart: HttpHandler = htmlView (Partials.workbenchChartContainer)
-    let workbenchFormulaDesigner : HttpHandler = htmlView (Partials.workbenchFormulaDesigner None Repository.WorkbenchChart.workbenchCharts)
-    let workbenchFormulaSma : HttpHandler = htmlView (Partials.workbenchFormulaDesigner (Some "sma(btc-usd, 7)") [])
-    let ``200 wma``: HttpHandler = htmlView Partials.wmaChartContainer
-    let dcaCalculatorChart : HttpHandler = htmlView (Partials.dcaCalculatorChartContainer Repository.DcaCalculation.dcaCalculation)
+    let workbenchChart: HttpHandler = htmlView (Partials.Charts.workbenchChartContainer)
+    let workbenchFormulaDesigner : HttpHandler = htmlView (Partials.Forms.workbenchFormulaDesigner None Repository.WorkbenchChart.workbenchCharts)
+    let workbenchFormulaSma : HttpHandler = htmlView (Partials.Forms.workbenchFormulaDesigner (Some "sma(btc-usd, 7)") [])
+    let ``200 wma``: HttpHandler = htmlView Partials.Charts.wmaChartContainer
+    let dcaCalculatorChart : HttpHandler = htmlView (Partials.Charts.dcaCalculatorChartContainer Repository.DcaCalculation.dcaCalculation)
 
 module Form =
     
@@ -286,7 +287,7 @@ module Form =
                 let errs = res |> List.collect (fun t -> match t with | Ok tx -> [] | Error errorValue -> errorValue)
                 
                 let! a = UserTransactions.Insert.insertMany txs userId
-                return! (withHxTrigger "tx-created" >=> htmlView (Views.Partials.importForm errs)) next ctx
+                return! (withHxTrigger "tx-created" >=> htmlView (Views.Partials.Forms.importForm errs)) next ctx
                 
         }
     
@@ -331,7 +332,7 @@ module Form =
                     "showMessage", Alerts.alert domain
                 ]
                 return!
-                    (withTriggers >=> htmlView Views.Partials.txsForm) next ctx
+                    (withTriggers >=> htmlView Views.Partials.Forms.txsForm) next ctx
             }
                     
     let formula: HttpHandler =
@@ -349,11 +350,11 @@ module Form =
                         Repository.WorkbenchChart.workbenchCharts <- appended
                         log.LogInformation("graphable series {graphableDataSeries}", graphableDataSeries)
                         
-                        let view = Views.Partials.workbenchFormulaDesigner (Some f) Repository.WorkbenchChart.workbenchCharts
+                        let view = Views.Partials.Forms.workbenchFormulaDesigner (Some f) Repository.WorkbenchChart.workbenchCharts
                         (withHxTrigger "formula-updated" >=> htmlView view) next ctx
                     | Failure(s, parserError, unit) ->
                         log.LogError("failed to parse {s}", s)                 
-                        (htmlView (Views.Partials.workbenchFormulaDesigner (Some f) Repository.WorkbenchChart.workbenchCharts)) next ctx
+                        (htmlView (Views.Partials.Forms.workbenchFormulaDesigner (Some f) Repository.WorkbenchChart.workbenchCharts)) next ctx
                 return! a
             }
             
@@ -368,7 +369,7 @@ module Form =
                       FiatAmount = form.Amount }
                 Repository.DcaCalculation.dcaCalculation <- req
                 
-                return! (withHxTrigger "dca-calculated" >=> (htmlView (Partials.dcaCalculatorForm req))) next ctx
+                return! (withHxTrigger "dca-calculated" >=> (htmlView (Partials.Forms.dcaCalculatorForm req))) next ctx
             }
     
     let deleteTx (txId: Guid, userId: Guid): HttpHandler =

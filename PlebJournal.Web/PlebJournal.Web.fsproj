@@ -32,7 +32,6 @@
         <Compile Include="Import.fs" />
         <Compile Include="Models.fs" />
         <Compile Include="Views\Layout.fs" />
-        <Compile Include="Views\Partials.fs" />
         <Compile Include="Views\Pages\Index.fs" />
         <Compile Include="Views\Pages\Transactions.fs" />
         <Compile Include="Views\Pages\Indicators.fs" />
@@ -41,6 +40,12 @@
         <Compile Include="Views\Pages\Twitter.fs" />
         <Compile Include="Views\Pages\DcaCalculator.fs" />
         <Compile Include="Views\Pages\CreateAccount.fs" />
+        <Compile Include="Views\Partials\Forms.fs" />
+        <Compile Include="Views\Partials\Toast.fs" />
+        <Compile Include="Views\Partials\User.fs" />
+        <Compile Include="Views\Partials\TxHistory.fs" />
+        <Compile Include="Views\Partials\Widgets.fs" />
+        <Compile Include="Views\Partials\Charts.fs" />
         <Compile Include="Handlers.fs" />
         <Compile Include="Routes.fs" />
         <Compile Include="Program.fs" />

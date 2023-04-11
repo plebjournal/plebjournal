@@ -1,28 +1,12 @@
-module Stacker.Web.Views.Partials
+module Stacker.Web.Views.Partials.Forms
 
 open System
-open System.Globalization
 open Stacker.Calculate
-open Stacker.Charting.Domain
 open Stacker.Domain
 open Giraffe.ViewEngine
 open Giraffe.ViewEngine.Htmx
-open Stacker.Web.Models
+open Stacker.Charting.Domain
 open Stacker.GenerateSeries
-
-let userNav (user: string option) =
-    match user with
-    | None -> a [ _href "/login" ] [ str "Login" ]
-    | Some usr ->
-        div [ _class "nav-item dropdown" ] [
-            a [ _class "nav-link"; _href "#"; _data "bs-toggle" "dropdown" ] [
-                str usr
-            ]
-            div [ _class "dropdown-menu dropdown-menu-end dropdown-menu-arrow" ] [
-                a [ _href "#"; _class "dropdown-item" ] [ str "Settings" ]
-                a [ _href "/logout"; _class "dropdown-item" ] [ str "Logout" ]
-            ]
-        ]
 
 let importForm (errs: string list) =
     div [ _class "modal"; _id "import-form" ] [
@@ -482,201 +466,38 @@ let txDetails (t: Transaction) (change: Change option) =
             ]
     ]
 
-
-let txToast () =
-    div [ _class "position-fixed  bottom-0 end-0 p-3" ] [
-        div [ _class "alert alert-success"; ] [
-            h4 [ _class "alert-title" ] [ str "Wow! Congratulations on buying BTC" ]
-            div [ _class "text-muted" ] [ str "Transaction saved successfully" ]
-        ]    
-    ]
-        
-let historyTable (txs: (Change option * Transaction) list) (selectedHorizon: TxHistoryHorizon option) =
-    let changeColumn (change: Change option) =
-        match change with
-        | None -> div [] []
-        | Some (Increase percent) ->
-            div [ _style "color: green;" ] [ str $"{percent}%%" ]
-        | Some (Decrease percent) ->
-            div [] [ str $"{percent}%%" ]
-    
-    div
-        [ _class "card"; _id "stacking-history" ]
-        [ div [ _class "card-header" ] [ h3 [ _class "card-title" ] [ str "Stacking History" ] ]
-          div [ _class "card-body border-bottom py-3" ] [
-            div [ _class "row" ] [
-                div [ _class "col text-muted" ] [ str "Show 10" ]
-                div [ _class "col-auto ms-auto text-muted" ] [
-                    select [
-                        _name "horizon"
-                        _type "button"
-                        _class "form-select"
-                        _hxGet "/history"
-                        _hxTarget "#stacking-history"
-                        _hxTrigger "change"
-                    ] [
-                        div [ _class "htmx-indicator" ] [ div [_class "spinner-border text-blue"] [] ]
-                        option ([ _value "2-months" ] @ [ if selectedHorizon = Some TwoMonths then _selected ]) [ str "2 Months" ]
-                        option ([ _value "12-months" ] @ [ if selectedHorizon = None || selectedHorizon = Some TwelveMonths then _selected ]) [str "12 Months"]
-                        option ([ _value "24-months" ] @ [ if selectedHorizon = Some TwoYears then _selected ]) [ str "24 Months" ]
-                        option ([ _value "all-data" ] @ [ if selectedHorizon = Some AllData then _selected ]) [ str "All Data" ]
-                    ]
+let workbenchFormulaDesigner (formulaValue: string option) (graphableSeries: (string * GraphableDataSeries) list) =
+    div [ _id "formula-designer" ] [
+        let v = Option.defaultValue "" formulaValue
+        div [ _class "row mb-3" ] [
+            div [ _class "btn-list" ] [
+                button [ _class "btn" ] [
+                    str "BTC Price  "
+                    span [ _class "badge bg-yellow ms-2" ] [ str "btc-usd" ]
                 ]
             ]
-          ]
-          div [ _class "table-responsive" ] [
-                table [ _class "table card-table table-vcenter datatable" ] [
-                    thead [] [
-                        tr [] [ 
-                            th [] [ str "Type" ]
-                            th [] [ str "Amount" ]                                         
-                            th [] [ str "Fiat" ]
-                            th [] [ str "Fiat Rate" ]
-                            th [] [ str "% change" ]
-                            th [] [ str "Date" ]
-                            th [] []
-                        ]
-                    ]
-                    tbody
-                        []
-                        (txs
-                         |> List.map (fun (change, tx) ->
-                             tr
-                                 []
-                                 [                                           
-                                   td [] [ str tx.TxName ]
-                                   
-                                   let fiatAmount =
-                                       function
-                                       | Some (f: FiatAmount) -> f.Amount.ToString("C2", CultureInfo.CreateSpecificCulture("en-US"))
-                                       | None -> ""
-
-                                   let fiatCurrent =
-                                       function
-                                       | Some f -> f.Currency.ToString()
-                                       | None -> ""
-                                       
-                                   let btcAmount = tx.Amount |> decimal |> fun d -> d.ToString("F8")
-                                   td [] [
-                                       i [ _class "ti ti-coin-bitcoin text-yellow"; _alt "BTC" ] []
-                                       str btcAmount
-                                   ]
-
-                                   td [] [ str $"{fiatAmount tx.Fiat} {fiatCurrent tx.Fiat}" ]
-                                   let pricePerCoin =
-                                       tx.PricePerCoin
-                                       |> Option.map (fun (d, fiat) ->
-                                           d
-                                           |> fun d -> d.ToString("C2", CultureInfo.CreateSpecificCulture("en-US"))
-                                           |> fun str -> $"{str} - CAD"
-                                           )
-                                       
-                                       |> Option.defaultValue ""
-                                   td [] [ str $"{pricePerCoin}" ]
-                                   td [ ] [ changeColumn change ]
-                                   td [] [ str $"{tx.DateTime.ToShortDateString()}" ]
-                                   td [] [
-                                       div [ _class "nav-item dropdown" ] [
-                                            a [ _class "nav-link"; _href "#"; _data "bs-toggle" "dropdown" ] [
-                                                i [ _class "ti ti-pencil" ] []
-                                            ]
-                                            div [ _class "dropdown-menu dropdown-menu-end dropdown-menu-arrow" ] [
-                                               a [
-                                                    _class "dropdown-item"
-                                                    _href "#"
-                                                    _hxTrigger "click"
-                                                    _hxTarget "#modal-container"
-                                                    _hxGet $"/tx/details/{tx.Id}"
-                                                ] [ str "Details" ]
-                                               a [
-                                                   _class "dropdown-item"
-                                                   _href "#"
-                                                   _hxTrigger "click"
-                                                   _hxTarget "#modal-container"
-                                                   _hxGet $"/tx/edit/{tx.Id}"
-                                               ] [ str "Edit" ]
-                                               a [
-                                                   _href "#"
-                                                   _class "dropdown-item"
-                                                   _hxTrigger "click"
-                                                   _hxTarget "#modal-container"
-                                                   _hxGet $"/tx/delete/{tx.Id}"
-                                               ] [ str "Delete" ]
-                                            ]
-                                        ]
-                                   ]
-                                    ])) ] ] ]
-
-let btcBalance balance (cadValue: decimal<btc> option) change =
-    let percentChangeSpan (change) =
-        match change with
-        | None -> span [] []
-        | Some (Increase percent) ->
-            span [ _class "text-green d-inline-flex lh-1"; _title "6 Mo" ] [ str $"+{percent}%%" ]
-        | Some (Decrease percent) ->
-            span [ _class "text-red d-inline-flex lh-1"; _title "6 Mo" ] [ str $"-{percent}%%" ]
-
-    div
-        [ _class "card" ]
-        [ div
-              [ _class "card-body" ]
-              [ div [ _class "d-flex align-items-center" ]
-                    [ div [ _class "subheader" ] [ str "BTC Balance" ]
-                       ]
-                div [ _class "d-flex align-items-baseline" ] [
-                    div [ _class "h1 mb-3 me-2" ] [ str $"{balance.Total} BTC" ]
-                    div [ _class "me-auto" ] [
-                        percentChangeSpan change
-                    ]
-                ]
-                match cadValue with
-                | Some v ->
-                    let value = v |> decimal |> (fun d -> d.ToString("F"))
-                    div [ _class "subheader" ] [ str $"${value} CAD" ]
-                | None -> div [] [] ] ]
-
-let fiatValue balance (cadValue: decimal<btc> option) change =
-    let percentChangeSpan (change) =
-        match change with
-        | None -> span [] []
-        | Some (Increase percent) ->
-            span [ _class "text-green d-inline-flex lh-1"; _title "7D" ] [ str $"+{percent}%%" ]
-        | Some (Decrease percent) ->
-            span [ _class "text-red d-inline-flex lh-1"; _title "7D" ] [ str $"-{percent}%%" ]
-    
-    div
-        [ _class "card" ]
-        [ div
-              [ _class "card-body" ]
-              [ div [ _class "subheader" ] [ str "Fiat Value" ]
-                match cadValue with
-                | Some v ->
-                    let value = v |> decimal
-
-                    div [ _class "d-flex align-items-baseline" ] [
-                        div [ _class "h1 mb-3 me-3" ] [
-                            let valueStr = value.ToString("C2")
-                            str $"{valueStr} CAD"
-                        ]
-                        div [ _class "me-auto" ] [
-                            percentChangeSpan change
-                        ]
-                    ]
-
-                | None -> div [] []
-                div [ _class "subheader" ] [ str $"{balance.Total} BTC" ]
-
-                ] ]
-
-let wmaChartContainer =
-    div
-        [ _class "card" ]
-        [ div [ _class "card-header" ] [ div [ _class "card-title" ] [ str "200 WMA" ] ]
-          div
-              []
-              [ div [ _id "wma-chart-container" ] []
-                script [ _src "/js/plotly-wma.js" ] [] ] ]
+        ]
         
+        div [] (graphableSeries |> List.map (fun (name, g) ->
+            div [] [
+                span [] [ str $"{name} {(g.ToString())}" ]
+            ]))
+        form [ _id "workbench-formula-form"; _hxPost "/workbench/formula"; _hxTarget "#formula-designer"; _hxSwap "outerHTML" ] [
+            div [ _class "row mb-3" ] [
+                div [ _class "col col-md-3" ] [
+                    label [ _class "form-label" ] [ str "formula name" ]
+                    input [ _class "form-control"; _name "formulaName"; _placeholder "200 wma"; _required ]
+                ]
+                div [ _class "col col-md-3" ] [
+                    label [ _class "form-label" ] [ str "formula" ]
+                    input [ _class "form-control"; _name "formula"; _required; _placeholder "sma(btc-usd, 700)" ]
+                ]
+            ]
+            button [ _type "submit"; _class "btn btn-primary" ] [ str "Save and Draw" ]
+            
+        ]
+    ]
+    
 let dcaCalculatorForm (generateDca: GenerateRequest) =
     let date = generateDca.Start.Date.ToShortDateString()
     let cadenceOptionDropdown (name: string) =
@@ -735,137 +556,4 @@ let dcaCalculatorForm (generateDca: GenerateRequest) =
                 button [ _class "btn btn-primary"; _type "submit" ] [ str "Calculate" ]    
             ]
         ]
-    ]
-
-        
-let dcaCalculatorChartContainer (dcaRequest: GenerateRequest) =
-    div [ _class "card-body" ] [
-        dcaCalculatorForm dcaRequest
-        div [] [
-            div [ _id "dca-calculator-container" ] []
-            script [ _src "/js/dca-calculator.js" ] []
-        ]
-    ]
-
-let workbenchFormulaDesigner (formulaValue: string option) (graphableSeries: (string * GraphableDataSeries) list) =
-    div [ _id "formula-designer" ] [
-        let v = Option.defaultValue "" formulaValue
-        div [ _class "row mb-3" ] [
-            div [ _class "btn-list" ] [
-                button [ _class "btn" ] [
-                    str "BTC Price  "
-                    span [ _class "badge bg-yellow ms-2" ] [ str "btc-usd" ]
-                ]
-            ]
-        ]
-        
-        div [] (graphableSeries |> List.map (fun (name, g) ->
-            div [] [
-                span [] [ str $"{name} {(g.ToString())}" ]
-            ]))
-        form [ _id "workbench-formula-form"; _hxPost "/workbench/formula"; _hxTarget "#formula-designer"; _hxSwap "outerHTML" ] [
-            div [ _class "row mb-3" ] [
-                div [ _class "col col-md-3" ] [
-                    label [ _class "form-label" ] [ str "formula name" ]
-                    input [ _class "form-control"; _name "formulaName"; _placeholder "200 wma"; _required ]
-                ]
-                div [ _class "col col-md-3" ] [
-                    label [ _class "form-label" ] [ str "formula" ]
-                    input [ _class "form-control"; _name "formula"; _required; _placeholder "sma(btc-usd, 700)" ]
-                ]
-            ]
-            button [ _type "submit"; _class "btn btn-primary" ] [ str "Save and Draw" ]
-            
-        ]
-    ]
-
-let workbenchChartContainer =
-    div [ _class "card"; ] [
-        div [ _class "card-header" ] [
-            div [ _class "card-title" ] [ str "Formula Builder" ]
-        ]
-        div [ _class "card-body" ] [
-            div [ ] [ workbenchFormulaDesigner None [] ]
-        ]
-        div [] [
-            div [ _id "workbench-chart-container" ] []
-            script [ _src "/js/workbench-chart.js" ] []
-        ]
-    ]
-
-let chartContainer (selectedHorizon: TxHistoryHorizon option) =
-    let createOption (value: string) (name: string) (selected: bool) =
-        option ([ _value value ] @ [ if selected then _selected ]) [ str name ]
-    
-    div [
-        _class "card"
-        _id "portfolio-chart-container"
-    ] [
-        div [ _class "card-body border-bottom py-3" ] [
-            div [ _class "row" ] [
-                div [ _class "col" ] [
-                    h3 [ _class "card-title" ] [str "Btc Portfolio"]
-                ]
-                div [ _class "col-auto ms-auto" ] [
-                    div [ _class "col-auto ms-auto text-muted" ] [
-                        select [
-                            _name "horizon"
-                            _type "button"
-                            _class "form-select"
-                            _hxGet "/chart"
-                            _hxTrigger "change, tx-created, tx-deleted"
-                            _hxTarget "#portfolio-chart-container"
-                            _hxSwap "outerHTML"
-                        ] [
-                            div [ _class "htmx-indicator" ] [ div [_class "spinner-border text-blue"] [] ]
-                            createOption "2-months" "2 Months" (selectedHorizon = Some TwoMonths)
-                            createOption "12-months" "12 Months" (selectedHorizon.IsNone || selectedHorizon = Some TwelveMonths)
-                            createOption "24-months" "24 Months" (selectedHorizon = Some TwoYears)
-                            createOption "all-data" "All Data" (selectedHorizon = Some AllData)
-                        ]
-                    ]
-                ]
-            ]
-        ]
-        div [ _id "chart-container" ] [
-            div [ _id "portfolio-chart"; ] []
-        ]
-    ]
-
-let fiatChartContainer (selectedHorizon: TxHistoryHorizon option) =
-    let createOption (value: string) (name: string) (selected: bool) =
-        option ([ _value value ] @ [ if selected then _selected ]) [ str name ]
-
-    
-    div [
-        _class "card"
-        _id "fiat-chart-container"
-    ] [
-        div [ _class "card-body body-border-bottom py-3" ] [
-            div [ _class "row" ] [
-                div [ _class "col" ] [
-                    h3 [ _class "card-title" ] [ str "Fiat Value" ]
-                ]
-                div [ _class "col-auto ms-auto" ] [
-                    div [ _class "text-muted" ] [
-                        select [
-                            _name "horizon"
-                            _type "button"
-                            _class "form-select"
-                            _hxGet "/charts/fiat-value"
-                            _hxTrigger "change, tx-created"
-                            _hxTarget "#fiat-chart-container"
-                            _hxSwap "outerHTML"
-                        ] [
-                            div [ _class "htmx-indicator" ] [ div [_class "spinner-border text-blue"] [] ]
-                            createOption "2-months" "2 Months" (selectedHorizon = Some TwoMonths)
-                            createOption "12-months" "12 Months" (selectedHorizon.IsNone || selectedHorizon = Some TwelveMonths)
-                            createOption "24-months" "24 Months" (selectedHorizon = Some TwoYears)
-                            createOption "all-data" "All Data" (selectedHorizon = Some AllData)                            
-                        ]
-                    ]
-                ]
-            ]
-            div [ _id "fiat-value-chart"] []
-        ]
-    ]
+    ]    
