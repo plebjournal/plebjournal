@@ -284,7 +284,13 @@ module Form =
                 let res = Import.import a
                 
                 let txs = res |> List.collect (fun t -> match t with | Ok tx -> [ tx ] | Error _ -> [])
-                let errs = res |> List.collect (fun t -> match t with | Ok tx -> [] | Error errorValue -> errorValue)
+                let errs =
+                    res
+                    |> List.collect
+                           (fun t ->
+                            match t with
+                            | Ok tx -> []
+                            | Error errorValue -> errorValue)
                 
                 let! a = UserTransactions.Insert.insertMany txs userId
                 return! (withHxTrigger "tx-created" >=> htmlView (Views.Partials.Forms.importForm errs)) next ctx
