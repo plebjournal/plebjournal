@@ -7,4 +7,5 @@ function closeModal() {
 }
 
 htmx.on("tx-created", closeModal);
+htmx.on("tx-updated", closeModal);
 htmx.on("tx-deleted", closeModal);

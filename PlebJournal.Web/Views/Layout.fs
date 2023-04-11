@@ -88,6 +88,11 @@ let private navbar =
                                   li
                                       [ _class "nav-item" ]
                                       [ a
+                                            [ _class "nav-link"; _href "/dca-calculator" ]
+                                            [ span [ _class "nav-link-title" ] [ str "DCA Calculator" ] ] ]
+                                  li
+                                      [ _class "nav-item" ]
+                                      [ a
                                             [ _class "nav-link"; _href "/indicators" ]
                                             [ span [ _class "nav-link-title" ] [ str "Indicators" ] ] ]
                                   li
@@ -100,11 +105,7 @@ let private navbar =
                                       [ a
                                             [ _class "nav-link"; _href "/twitter" ]
                                             [ span [ _class "nav-link-title" ] [ str "Twitter" ] ] ]
-                                  li
-                                      [ _class "nav-item" ]
-                                      [ a
-                                            [ _class "nav-link"; _href "/dca-calculator" ]
-                                            [ span [ _class "nav-link-title" ] [ str "DCA Calculator" ] ] ] ] ] ] ] ]
+                                   ] ] ] ] ]
 
 let private toast =
     div [ _class "position-fixed position-fixed bottom-0 end-0 p-3" ] [

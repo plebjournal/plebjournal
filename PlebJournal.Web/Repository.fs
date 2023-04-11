@@ -143,7 +143,39 @@ module PostgresDb =
                     let! _ = postgresManyNonQuery insertManyUserTxs
                     return ()
                 }
+        module Update =
+            let private updateTxQuery =
+                """
+                update transactions 
+                set 
+                    date = @date,
+                    type = @type,
+                    btc_amount = @btcAmount,
+                    fiat_amount = @fiatAmount,
+                    fiat_code = @fiatCode,
+                    updated = now()
+                where id = @id
+                """.Trim()
+                
+            let private daoToProps (txDao: TransactionDao) = [
+                "id", Sql.uuid txDao.Id
+                "date", Sql.timestamp txDao.Date
+                "type", Sql.text txDao.Type
+                "btcAmount", Sql.decimal (decimal txDao.BtcAmount)
+                "fiatAmount", Sql.decimalOrNone txDao.FiatAmount
+                "fiatCode", Sql.textOrNone txDao.FiatCode
+            ]
             
+            let updateTx (t: Transaction) =
+                let props = t |> txToDao |> daoToProps
+                task {
+                    let! updated = postgresNonQuery updateTxQuery props
+                    return
+                        match updated with
+                        | 1 -> Some ()
+                        | _ -> None
+                }
+                
         module Read =
             let getAllTxsForUser (userId: Guid) =
                 let getTxsQuery =

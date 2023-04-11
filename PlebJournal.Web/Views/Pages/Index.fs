@@ -33,21 +33,34 @@ let indexPage = [
             div [ _hxGet "/balance"; _hxTrigger "revealed, tx-created from:body" ] [ ]
         ]
         div [ _class "col-sm-12 col-md-6"; _id "fait-value-container" ] [
-            div [ _hxGet "/fiat-value"; _hxTrigger "revealed, tx-created from:body" ] [ ]
+            div [
+                _hxGet "/fiat-value"
+                _hxTrigger "revealed, tx-created from:body, tx-deleted from:body, tx-updated from:body"
+            ] [ ]
         ]
     ]
     
     div [ _class "row mb-4" ] [
-        div [ _class "col-md-12"; _hxGet "/chart"; _hxTrigger "revealed" ] [ ]
+        div [
+            _class "col-md-12"
+            _hxGet "/chart"
+            _hxTrigger "revealed, tx-created from:body, tx-deleted from:body, tx-updated from:body"
+        ] [ ]
     ]
     
     div [ _class "row mb-4" ] [
-        div [ _class "col-md-12"; _hxGet "/charts/fiat-value"; _hxTrigger "revealed" ] []
+        div [
+            _class "col-md-12"
+            _hxGet "/charts/fiat-value"
+            _hxTrigger "revealed, tx-created from:body, tx-deleted from:body, tx-updated from:body" ] []
     ]
     
     div [ _class "row" ] [
         div [ _class "col-sm-12" ] [
-            div [ _hxGet "/history"; _hxTrigger "revealed, tx-created from:body, tx-deleted from:body" ] []
+            div [
+                _hxGet "/history"
+                _hxTrigger "revealed, tx-created from:body, tx-deleted from:body, tx-updated from:body"
+            ] []
         ]
     ]
 ]

@@ -82,6 +82,19 @@ module Partials =
                     
                 return! resp next ctx
             }
+            
+    let editForm (txId: Guid, userId: Guid) : HttpHandler =
+        fun next ctx ->
+            task {
+                let! t = UserTransactions.Read.getTxById userId txId
+                
+                let resp =
+                    match t with
+                    | None -> RequestErrors.NOT_FOUND "Tx not found"
+                    | Some tx -> htmlView (Partials.editModal tx)
+                
+                return! resp next ctx
+            }
         
     let txSuccessfulToast: HttpHandler = htmlView (Partials.txToast ())
     let importForm: HttpHandler = htmlView (Partials.importForm [])
@@ -366,6 +379,57 @@ module Form =
                 return!
                     (trigger >=> Successful.OK ()) next ctx
             }
+            
+    let editTx (txId: Guid, userId: Guid): HttpHandler =
+        let createBtcAmount (editTx: EditBtcTransaction) =
+            match editTx.BtcUnit with
+            | Btc -> Domain.Btc(editTx.Amount * 1.0m<btc>)
+            | Sats -> Domain.Sats(int64 editTx.Amount * 1L<sats>)
+
+        let toDomain (editTx: EditBtcTransaction) =
+            match editTx.Type with
+            | Buy ->
+                Domain.Buy
+                    { Id = txId
+                      Date = editTx.Date
+                      Amount = createBtcAmount editTx
+                      Fiat = { Amount = editTx.FiatAmount; Currency = editTx.Fiat } }
+            | Income ->
+                Domain.Income
+                    { Id = txId
+                      Date = editTx.Date
+                      Amount = createBtcAmount editTx }
+            | Sell ->
+                Domain.Sell
+                    { Id = txId
+                      Date = editTx.Date
+                      Amount = createBtcAmount editTx
+                      Fiat = { Amount = editTx.FiatAmount; Currency = editTx.Fiat } }
+            | Spend ->
+                Domain.Spend
+                    { Id = txId
+                      Date = editTx.Date
+                      Amount = createBtcAmount editTx }
+        
+        
+        fun next ctx ->
+            task {
+                let! update = ctx.BindFormAsync<EditBtcTransaction>()
+                let domain = toDomain update
+                let! changed = UserTransactions.Update.updateTx domain
+                let res =
+                    match changed with
+                    | None -> RequestErrors.NOT_FOUND "TX Not found" next ctx
+                    | Some () ->
+                        let withTriggers = withHxTriggerManyAfterSettle [
+                            "tx-updated", ""
+                            "showMessage", "Transaction Updated"
+                        ]
+                        (withTriggers >=> Successful.OK ()) next ctx
+                
+                return! res
+            }
+            
 module Api =
     let chartApi (userId: Guid): HttpHandler =
         fun next ctx ->

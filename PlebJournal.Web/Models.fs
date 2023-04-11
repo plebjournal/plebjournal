@@ -19,6 +19,17 @@ type CreateBtcTransaction =
       AmountType: string
       Fiat: Fiat }
 
+[<CLIMutable>]
+type EditBtcTransaction =
+    { Id: Guid
+      Type: TxType
+      Amount: decimal
+      BtcUnit: BtcUnit
+      FiatAmount: decimal
+      Date: DateTime
+      AmountType: string
+      Fiat: Fiat }
+
 type Balance = { Total: decimal<btc> }
 
 [<CLIMutable>]
