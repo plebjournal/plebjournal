@@ -24,7 +24,7 @@ let transactionsPage = [
                     _hxTarget "#modal-container"
                     _hxGet "/bought"                    
                 ] [
-                    str "+"
+                    i [ _class "ti ti-plus" ] []
                 ]
                 button [
                     _class "btn d-none d-sm-inline"

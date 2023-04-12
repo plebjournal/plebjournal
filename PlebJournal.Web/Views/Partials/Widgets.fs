@@ -1,5 +1,6 @@
 module Stacker.Web.Views.Partials.Widgets
 
+open System.Globalization
 open Stacker.Calculate
 open Stacker.Domain
 open Giraffe.ViewEngine
@@ -22,15 +23,19 @@ let btcBalance balance (cadValue: decimal<btc> option) change =
                     [ div [ _class "subheader" ] [ str "BTC Balance" ]
                        ]
                 div [ _class "d-flex align-items-baseline" ] [
-                    div [ _class "h1 mb-3 me-2" ] [ str $"{balance.Total} BTC" ]
+                    let balanceStr = balance.Total |> decimal |> fun d -> d.ToString("F8")
+                    div [ _class "h1 mb-3 me-2" ] [ str $"{balanceStr} BTC" ]
                     div [ _class "me-auto" ] [
                         percentChangeSpan change
                     ]
                 ]
                 match cadValue with
                 | Some v ->
-                    let value = v |> decimal |> (fun d -> d.ToString("F"))
-                    div [ _class "subheader" ] [ str $"${value} CAD" ]
+                    let culture = CultureInfo.CreateSpecificCulture("en-US")
+                    let value = v |> decimal |> (fun d -> d.ToString("C2", culture))
+                    div [ _class "subheader" ] [
+                        str $"${value} CAD"
+                    ]
                 | None -> div [] [] ] ]
 
 let fiatValue balance (cadValue: decimal<btc> option) change =
@@ -53,7 +58,8 @@ let fiatValue balance (cadValue: decimal<btc> option) change =
 
                     div [ _class "d-flex align-items-baseline" ] [
                         div [ _class "h1 mb-3 me-3" ] [
-                            let valueStr = value.ToString("C2")
+                            let culture = CultureInfo.CreateSpecificCulture("en-US")
+                            let valueStr = value.ToString("C2", culture)
                             str $"{valueStr} CAD"
                         ]
                         div [ _class "me-auto" ] [
@@ -62,6 +68,9 @@ let fiatValue balance (cadValue: decimal<btc> option) change =
                     ]
 
                 | None -> div [] []
-                div [ _class "subheader" ] [ str $"{balance.Total} BTC" ]
-
-                ] ]
+                div [ _class "subheader" ] [
+                    let balanceStr = balance.Total |> decimal |> fun d -> d.ToString("F8")
+                    str $"{balanceStr} BTC"
+                ]
+            ]
+        ]

@@ -87,8 +87,7 @@ let historyTable (txs: (Change option * Transaction) list) (selectedHorizon: TxH
                                        |> Option.map (fun (d, fiat) ->
                                            d
                                            |> fun d -> d.ToString("C2", CultureInfo.CreateSpecificCulture("en-US"))
-                                           |> fun str -> $"{str} - CAD"
-                                           )
+                                           |> fun str -> $"{str} - {fiat.ToString()}")
                                        
                                        |> Option.defaultValue ""
                                    td [] [ str $"{pricePerCoin}" ]
