@@ -4,28 +4,40 @@ open Giraffe.ViewEngine.Htmx
 open Giraffe.ViewEngine
     
 let indexPage = [
-    div [ _hxGet "/import"; _hxTrigger "revealed"] []
+    //div [ _hxGet "/import"; _hxTrigger "revealed"] []
     
     div [ _class "row mb-4" ] [
         div [ _class "col" ] [
             h2 [ _class "page-title" ] [ str "Dashboard" ]
         ]
         div [ _class "col-auto" ] [
-            button [ _class "btn btn-primary"
-                     _hxTrigger "click"
-                     _hxTarget "#modal-container"
-                     _hxGet "/bought"
-                     ] [
-                str "Enter Transaction"
+            div [ _class "btn-list" ] [
+                button [
+                    _class "btn btn-primary d-none d-sm-inline-block"
+                    _hxTrigger "click"
+                    _hxTarget "#modal-container"
+                    _hxGet "/bought"
+                ] [
+                    str "Enter Transaction"
+                ]
+                button [
+                    _class "btn btn-primary d-sm-none"
+                    _hxTrigger "click"
+                    _hxTarget "#modal-container"
+                    _hxGet "/bought"                    
+                ] [
+                    str "+"
+                ]
+                button [
+                    _class "btn d-none d-sm-inline"
+                    _hxTarget "#modal-container"
+                    _hxGet "/import"
+                    _hxTrigger "click"
+                ] [
+                    str "Import"
+                ]
             ]
-        ]
-        div [ _class "col-auto" ] [
-            button [ _class "btn"
-                     _data "bs-toggle" "modal"
-                     _data "bs-target" "#import-form" ] [
-                str "Import"
-                
-            ]
+            
         ]
     ]
     div [ _class "row mb-4 row-cards" ] [       

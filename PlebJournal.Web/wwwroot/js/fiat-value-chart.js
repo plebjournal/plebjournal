@@ -14,7 +14,7 @@ const loadFiatValueChart = async (horizon) => {
     hovermode: 'x unified',
   };
 
-  Plotly.newPlot(chart, traces, layout)
+  chart && Plotly.newPlot(chart, traces, layout)
 };
 
 htmx.on('tx-created', () => loadFiatValueChart());

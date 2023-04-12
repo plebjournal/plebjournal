@@ -9,47 +9,66 @@ open Stacker.Charting.Domain
 open Stacker.GenerateSeries
 
 let importForm (errs: string list) =
-    div [ _class "modal"; _id "import-form" ] [
-        div [ _class "modal-dialog" ] [
-            div [ _class "modal-content" ] [
-                div [ _class "modal-header" ] [
-                    h1 [ _class "modal-title" ] [ str "Import Transactions" ]
-                ]
-                div [ _class "modal-body" ] [
-                    div [] (errs |> List.map (fun err -> p [] [str err]))
-                    form [
-                        _enctype "multipart/form-data"
-                        _hxPost "/import"
-                        _hxTarget "#import-form"
-                        _hxSwap "outerHTML"
-                    ] [
-                        div [ _class "row mb-3" ] [
-                            div [ _class "col-sm-12 col-md-6" ] [
-                                label [ _class "form-label"; _required; ] [ str "CSV File" ]
-                                input [ _type "file"; _name "CsvFile"; _required; _class "form-control" ]
-                                input [ _type "hidden"; _name "Other"; _value "Testing" ]
-                            ]
+    div [] [
+        div [
+            _class "modal modal-backdrop fade show"
+            _style "display:block;"
+        ] []
+        div
+            [ _class "modal show modal-blur"
+              _style "display:block;"
+              _tabindex "-1" ] [
+                div [ _class "modal-dialog" ] [
+                    div [ _class "modal-content"; ] [
+                        div [ _class "modal-header" ] [
+                            h1 [ _class "modal-title" ] [ str "Transaction Details" ]
+                            button [ _type "button"; _class "btn-close"; _onclick "closeModal()" ] []
                         ]
-                        div [ _class "row" ] [
-                            div
-                                [ _class "col" ]
-                                [ button
-                                      [ _class "btn btn-secondary"; _data "bs-dismiss" "modal" ]
-                                      [ str "Cancel" ] ]
-                            div
-                                [ _class "col-auto" ]
-                                [ button
-                                      [ _type "submit"
-                                        _class "btn btn-success"
-                                        _data "bs-dismiss" "modal" ]
-                                      [ str "Import" ]
+                        div [ _class "modal-body" ] [
+                            div [] (errs |> List.map (fun err -> p [] [str err]))
+                            div [ _class "row mb-3" ] [
+                                div [] [
+                                    str "CSV file should be in the following format. Hopefully more formats are coming."
+                                ]
+                                pre [] [
+                                    str "Type,Buy,BuyCurrency,Sell,SellCurrency,Date\nTrade,0.05224,BTC,2000,CAD,2023-04-03 21:51"
+                                ]
+                            ]
+                            
+                            form [
+                                _enctype "multipart/form-data"
+                                _hxPost "/import"
+                                _hxTarget "this"
+                                _hxSwap "outerHTML"
+                            ] [
+                                div [ _class "row mb-3" ] [
+                                    div [ _class "col-sm-12 col-md-6" ] [
+                                        label [ _class "form-label"; _required; ] [ str "CSV File" ]
+                                        input [ _type "file"; _name "CsvFile"; _required; _class "form-control" ]
+                                        input [ _type "hidden"; _name "Other"; _value "Testing" ]
+                                    ]
+                                ]
+                                div [ _class "row" ] [
+                                    div
+                                        [ _class "col" ]
+                                        [ button
+                                              [ _class "btn btn-secondary"
+                                                _onclick "closeModal()" ]
+                                              [ str "Cancel" ] ]
+                                    div
+                                        [ _class "col-auto" ]
+                                        [ button
+                                              [ _type "submit"
+                                                _class "btn btn-success" ]
+                                              [ str "Import" ]
+                                            ]
                                     ]
                             ]
+                        ]
+                        ]
                     ]
                 ]
             ]
-        ]
-    ]
     
 let txsForm =
     form

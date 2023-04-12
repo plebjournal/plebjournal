@@ -18,10 +18,13 @@ let historyTable (txs: (Change option * Transaction) list) (selectedHorizon: TxH
     
     div
         [ _class "card"; _id "stacking-history" ]
-        [ div [ _class "card-header" ] [ h3 [ _class "card-title" ] [ str "Stacking History" ] ]
-          div [ _class "card-body border-bottom py-3" ] [
+        [ div [ _class "card-body border-bottom py-3" ] [
             div [ _class "row" ] [
-                div [ _class "col text-muted" ] [ str "Show 10" ]
+                div [ _class "col text-muted" ] [
+                    h3 [] [
+                        str "Transactions"
+                    ]
+                ]
                 div [ _class "col-auto ms-auto text-muted" ] [
                     select [
                         _name "horizon"

@@ -282,8 +282,10 @@ module Form =
                 let! a = reader.ReadToEndAsync()
                 
                 let res = Import.import a
+                let txs =
+                    res
+                    |> List.collect (fun t -> match t with | Ok tx -> [ tx ] | Error _ -> [])
                 
-                let txs = res |> List.collect (fun t -> match t with | Ok tx -> [ tx ] | Error _ -> [])
                 let errs =
                     res
                     |> List.collect
@@ -292,9 +294,12 @@ module Form =
                             | Ok tx -> []
                             | Error errorValue -> errorValue)
                 
-                let! a = UserTransactions.Insert.insertMany txs userId
-                return! (withHxTrigger "tx-created" >=> htmlView (Views.Partials.Forms.importForm errs)) next ctx
-                
+                do! UserTransactions.Insert.insertMany txs userId
+                let withTriggers = withHxTriggerManyAfterSettle [
+                    "tx-created", ""
+                    "showMessage", $"Imported {txs.Length} transactions"
+                ]
+                return! (withTriggers >=> htmlView (Views.Partials.Forms.importForm errs)) next ctx
         }
     
     let createTx (userId: Guid): HttpHandler =
@@ -417,7 +422,6 @@ module Form =
                     { Id = txId
                       Date = editTx.Date
                       Amount = createBtcAmount editTx }
-        
         
         fun next ctx ->
             task {
