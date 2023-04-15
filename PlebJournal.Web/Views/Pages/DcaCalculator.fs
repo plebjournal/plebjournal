@@ -13,5 +13,6 @@ let dcaCalculatorPage = [
     ]
     div [ _class "card" ] [
         div [ _class "col-md-12"; _hxGet "/charts/dca-calculator"; _hxTrigger "revealed" ] [ ]
-    ]    
+    ]
+    script [ _src "https://cdn.plot.ly/plotly-2.16.1.min.js" ] []
 ]

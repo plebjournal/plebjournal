@@ -7,5 +7,5 @@ let txToast () =
         div [ _class "alert alert-success"; ] [
             h4 [ _class "alert-title" ] [ ]
             div [ _class "text-muted" ] [ str "Transaction saved successfully" ]
-        ]    
+        ]
     ]

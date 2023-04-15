@@ -74,3 +74,24 @@ let fiatValue balance (cadValue: decimal<btc> option) change =
                 ]
             ]
         ]
+
+let btcPrice (cad: decimal, usd: decimal) =
+    let culture = CultureInfo.CreateSpecificCulture("en-US")
+
+    div [ _class "card" ] [
+        div [ _class "card-body" ] [
+            div [ _class "subheader" ] [
+                str "Btc Price"
+            ]
+            div [ _class "d-flex align-items-baseline" ] [
+                div [ _class "h1 mb-3 me-3" ] [
+                    let valueStr = cad.ToString("C2", culture)
+                    str $"{valueStr} CAD"
+                ]
+            ]
+            div [ _class "subheader" ] [
+                    let valueStr = usd.ToString("C2", culture)
+                    str $"{valueStr} USD"
+            ]
+        ]
+    ]

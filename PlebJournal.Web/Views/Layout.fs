@@ -7,16 +7,15 @@ let private htmlHead =
     head
         []
         [ meta [ _charset "utf-8" ]
-          meta [ _name "viewport"; _content "width=device-width, initial-scale=1" ]
+          meta [ _name "viewport"; _content "width=device-width, initial-scale=1, viewport-fit=cover" ]
+          link [ _rel "icon"; _type "image/x-icon"; _href "/img/favicon.png" ]
           link
               [ _rel "stylesheet"
-                _href "https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta16/dist/css/tabler.min.css" ]
+                _href "https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta17/dist/css/tabler.min.css" ]
           link
               [ _rel "stylesheet"
                 _href "https://cdn.jsdelivr.net/npm/@tabler/icons@latest/iconfont/tabler-icons.min.css" ]
           link [ _rel "stylesheet"; _href "/css/style.css" ]
-
-          script [ _src "https://code.jquery.com/jquery-3.6.3.min.js" ] []
           script
               [ _src "https://unpkg.com/htmx.org@1.8.4"
                 _integrity "sha384-wg5Y/JwF7VxGk4zLsJEcAojRtlVp1FKKdGy1qN+OMtdq72WRvX/EdRdqg/LOhYeV"
@@ -27,15 +26,7 @@ let private htmlHead =
               [ _type "module"
                 _src "https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta16/dist/js/tabler.min.js" ]
               []
-          script [ _src "https://cdn.jsdelivr.net/npm/apexcharts" ] []
-          script [ _src "https://cdn.jsdelivr.net/npm/chart.js" ] []
-          script
-              [ _src "https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js" ]
-              []
-          script [ _src "https://cdn.plot.ly/plotly-2.16.1.min.js" ] []
           script [ _src "/js/toast.js" ] []
-          script [ _src "/js/portfolio-summary-chart.js" ] []
-          script [ _src "/js/fiat-value-chart.js" ] []
           script [ _src "/js/modal-helper.js" ] []
           title [] [ str "Pleb Journal" ] ]
 
@@ -130,18 +121,20 @@ let onload (js: string) =
     
 let withLayout (pageContent: XmlNode list) =
     html [] [
-      htmlHead
-      body [ onload "configureHtmx()" ] [
-        div [ _class "page" ] [
-            header
-            navbar
-            div [ _class "page-wrapper" ] [
-                div [ _id "modal-container" ] []
-                div [ _class "page-body" ] [ div [ _class "container" ] pageContent ]
-                toast
-                
+        htmlHead
+        body [
+            _class "theme-dark"
+            onload "configureHtmx()"
+        ] [
+            div [ _class "page" ] [
+                header
+                navbar
+                div [ _class "page-wrapper" ] [
+                    div [ _id "modal-container" ] []
+                    div [ _class "page-body" ] [ div [ _class "container" ] pageContent ]
+                    toast
+                    
+                ]
             ]
         ]
-        
-      ]
     ]

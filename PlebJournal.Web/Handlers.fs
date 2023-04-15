@@ -172,6 +172,16 @@ module Partials =
                 let change = Calculate.numericalChange (decimal totalValueLastWeek) (decimal totalValueToday)
                 return! htmlView (Partials.Widgets.fiatValue res (Some totalValueToday) change) next ctx
             }
+            
+    let btcPrice : HttpHandler =
+        fun next ctx ->
+            task {
+                let cadPrice' = CurrentPrice.Read.getCurrentPrice CAD
+                let! usdPrice = CurrentPrice.Read.getCurrentPrice USD
+                let! cadPrice = cadPrice'
+                
+                return! htmlView (Partials.Widgets.btcPrice (cadPrice, usdPrice)) next ctx
+            }
     
     let chart: HttpHandler =
         fun next ctx ->

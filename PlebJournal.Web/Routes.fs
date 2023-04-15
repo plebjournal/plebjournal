@@ -50,6 +50,7 @@ let secureRoutes = withAuth >=> router {
     get "/history" (withUserId Handlers.Partials.history)
     get "/balance" (withUserId Handlers.Partials.balance)
     get "/fiat-value" (withUserId Handlers.Partials.fiatValue)
+    get "/btc-price" (Handlers.Partials.btcPrice)
     get "/chart" Handlers.Partials.chart
     get "/workbench/formula-designer" Handlers.Partials.workbenchFormulaDesigner
     post "/workbench/formula/sma" Handlers.Partials.workbenchFormulaSma

@@ -62,7 +62,7 @@ let app =
     application {
         use_static "wwwroot"
         use_router Routes.topRouter
-        service_config addBackgroundJobs
+        //service_config addBackgroundJobs
         service_config addIdentityDb
         app_config configureApp
     }
