@@ -13,6 +13,7 @@
         <Compile Include="Charting.fs" />
         <Compile Include="GenerateSeries.fs" />
         <Compile Include="Alerts.fs" />
+        <Compile Include="Supply.fs" />
     </ItemGroup>
 
     <ItemGroup>
