@@ -12,6 +12,7 @@
         <Compile Include="Calculate.Test.fs" />
         <Compile Include="Generate.Test.fs" />
         <Compile Include="Supply.fs" />
+        <Compile Include="Models.Test.fs" />
         <Compile Include="Program.fs" />
     </ItemGroup>
 
@@ -32,6 +33,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\PlebJournal.Domain\PlebJournal.Domain.fsproj" />
+      <ProjectReference Include="..\PlebJournal.Web\PlebJournal.Web.fsproj" />
     </ItemGroup>
 
 </Project>

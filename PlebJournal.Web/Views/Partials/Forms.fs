@@ -70,12 +70,14 @@ let importForm (errs: string list) =
                 ]
             ]
     
-let txsForm =
+let txsForm (errs: string list) =
     form
         [ _hxPost "/bought"
           _hxTarget "this"
           _hxSwap "outerHTML" ]
-            [ div
+            [
+              div [ _class "row" ] (errs |> List.map (fun e -> div [ _class "col-sm-12 text-red" ] [ str e ]))
+              div
                   [ _class "row mb-3" ]
                   [
                     div [ _class "col-sm-12 col-md-4" ] [
@@ -160,7 +162,7 @@ let boughtBtcModal =
                                 button [ _type "button"; _class "btn-close"; _onclick "closeModal()" ] []
                             ]
                             div [ _class "modal-body" ] [
-                                txsForm
+                                txsForm []
                             ] ] ]
                    ]
     ]

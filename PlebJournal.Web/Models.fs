@@ -16,7 +16,6 @@ type CreateBtcTransaction =
       BtcUnit: BtcUnit
       FiatAmount: decimal
       Date: DateTime
-      AmountType: string
       Fiat: Fiat }
 
 [<CLIMutable>]
@@ -79,3 +78,28 @@ type TxHistoryHorizon =
         | "24-months" -> TwoYears |> Some
         | "all-data" -> AllData |> Some
         | _ -> None
+        
+module Validation =
+    open FsToolkit.ErrorHandling
+    let validateTransaction (tx: CreateBtcTransaction) =
+        let validateBtcAmount (tx: CreateBtcTransaction) =
+            if tx.BtcAmount <= 0.0m then Error "Must be positive btc amount" else
+                let asSats =
+                    match tx.BtcUnit with
+                    | Btc -> convertBtcToSatsDecimal (tx.BtcAmount * 1.0M<btc>)
+                    | Sats -> int64 tx.BtcAmount * 1L<sats>
+            
+                if asSats < 1L<sats> then Error "Must be a positive amount of btc" else Ok asSats
+        let validateFiatAmount (tx: CreateBtcTransaction) =
+            if tx.FiatAmount <= 0.0m then Error "Must be positive Fiat amount" else Ok tx.FiatAmount
+        let validateDate (tx: CreateBtcTransaction) =
+            match tx.Date with
+            | d when d < DateTime(2009, 01, 01) -> Error "Bitcoin wasn't invented yet!"
+            | _ -> Ok tx.Date
+        validation {
+            let! btcAmount = validateBtcAmount tx
+            and! fiatAmount = validateFiatAmount tx
+            and! date = validateDate tx
+            
+            return tx
+        }

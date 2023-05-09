@@ -346,14 +346,19 @@ module Form =
         fun next ctx ->
             task {
                 let! boughtBtc = ctx.BindFormAsync<CreateBtcTransaction>()
-                let domain = toDomain boughtBtc
-                do! UserTransactions.Insert.insertTx domain userId
-                let withTriggers = withHxTriggerManyAfterSettle [
-                    "tx-created", ""
-                    "showMessage", Alerts.alert domain
-                ]
-                return!
-                    (withTriggers >=> htmlView Views.Partials.Forms.txsForm) next ctx
+                let validated = Validation.validateTransaction boughtBtc
+                match validated with
+                | Ok tx ->
+                    let domain = toDomain tx
+                    do! UserTransactions.Insert.insertTx domain userId
+                    let withTriggers = withHxTriggerManyAfterSettle [
+                        "tx-created", ""
+                        "showMessage", Alerts.alert domain
+                    ]
+                    return!
+                        (withTriggers >=> htmlView (Views.Partials.Forms.txsForm [])) next ctx
+                | Error errs ->
+                    return! (htmlView (Views.Partials.Forms.txsForm errs)) next ctx
             }
                     
     let formula: HttpHandler =
