@@ -81,7 +81,8 @@ type TxHistoryHorizon =
         
 module Validation =
     open FsToolkit.ErrorHandling
-    let validateTransaction (tx: CreateBtcTransaction) =
+    
+    let validateNewTransaction (tx: CreateBtcTransaction) =
         let validateBtcAmount (tx: CreateBtcTransaction) =
             if tx.BtcAmount <= 0.0m then Error "Must be positive btc amount" else
                 let asSats =
@@ -103,3 +104,26 @@ module Validation =
             
             return tx
         }
+        
+    let validateEditedTransaction (tx: EditBtcTransaction) =
+        let validateBtcAmount (tx: EditBtcTransaction) =
+            if tx.Amount <= 0.0m then Error "Must be positive btc amount" else
+                let asSats =
+                    match tx.BtcUnit with
+                    | Btc -> convertBtcToSatsDecimal (tx.Amount * 1.0M<btc>)
+                    | Sats -> int64 tx.Amount * 1L<sats>
+            
+                if asSats < 1L<sats> then Error "Must be a positive amount of btc" else Ok asSats
+        let validateFiatAmount (tx: EditBtcTransaction) =
+            if tx.FiatAmount <= 0.0m then Error "Must be positive Fiat amount" else Ok tx.FiatAmount
+        let validateDate (tx: EditBtcTransaction) =
+            match tx.Date with
+            | d when d < DateTime(2009, 01, 01) -> Error "Bitcoin wasn't invented yet!"
+            | _ -> Ok tx.Date
+        validation {
+            let! btcAmount = validateBtcAmount tx
+            and! fiatAmount = validateFiatAmount tx
+            and! date = validateDate tx
+            
+            return tx
+        }        

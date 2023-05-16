@@ -346,7 +346,7 @@ module Form =
         fun next ctx ->
             task {
                 let! boughtBtc = ctx.BindFormAsync<CreateBtcTransaction>()
-                let validated = Validation.validateTransaction boughtBtc
+                let validated = Validation.validateNewTransaction boughtBtc
                 match validated with
                 | Ok tx ->
                     let domain = toDomain tx
@@ -356,9 +356,9 @@ module Form =
                         "showMessage", Alerts.alert domain
                     ]
                     return!
-                        (withTriggers >=> htmlView (Views.Partials.Forms.txsForm [])) next ctx
+                        (withTriggers >=> htmlView (Views.Partials.Forms.newTxsForm [])) next ctx
                 | Error errs ->
-                    return! (htmlView (Views.Partials.Forms.txsForm errs)) next ctx
+                    return! (htmlView (Views.Partials.Forms.newTxsForm errs)) next ctx
             }
                     
     let formula: HttpHandler =
@@ -441,19 +441,25 @@ module Form =
         fun next ctx ->
             task {
                 let! update = ctx.BindFormAsync<EditBtcTransaction>()
-                let domain = toDomain update
-                let! changed = UserTransactions.Update.updateTx domain
-                let res =
-                    match changed with
-                    | None -> RequestErrors.NOT_FOUND "TX Not found" next ctx
-                    | Some () ->
-                        let withTriggers = withHxTriggerManyAfterSettle [
-                            "tx-updated", ""
-                            "showMessage", "Transaction Updated"
-                        ]
-                        (withTriggers >=> Successful.OK ()) next ctx
-                
-                return! res
+                let validated = Validation.validateEditedTransaction update
+                match validated with
+                | Error e ->
+                    let! t = UserTransactions.Read.getTxById userId txId
+                    return! (htmlView (Views.Partials.Forms.editTxForm t.Value e)) next ctx
+                | Ok tx ->
+                    let domain = toDomain tx
+                    let! changed = UserTransactions.Update.updateTx domain
+                    let res =
+                        match changed with
+                        | None -> RequestErrors.NOT_FOUND "TX Not found" next ctx
+                        | Some () ->
+                            let withTriggers = withHxTriggerManyAfterSettle [
+                                "tx-updated", ""
+                                "showMessage", "Transaction Updated"
+                            ]
+                            (withTriggers >=> Successful.OK ()) next ctx
+                    
+                    return! res
             }
             
 module Api =

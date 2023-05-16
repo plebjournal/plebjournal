@@ -123,7 +123,6 @@ let withLayout (pageContent: XmlNode list) =
     html [] [
         htmlHead
         body [
-            _class "theme-dark"
             onload "configureHtmx()"
         ] [
             div [ _class "page" ] [

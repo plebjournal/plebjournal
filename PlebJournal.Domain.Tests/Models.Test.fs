@@ -23,5 +23,5 @@ let ``should validate bad transaction`` () =
         "Must be positive Fiat amount"
     ]
     
-    let actual = validateTransaction createTx
+    let actual = validateNewTransaction createTx
     Expect.equal actual expected "Should equal"

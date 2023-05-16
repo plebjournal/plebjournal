@@ -70,7 +70,7 @@ let importForm (errs: string list) =
                 ]
             ]
     
-let txsForm (errs: string list) =
+let newTxsForm (errs: string list) =
     form
         [ _hxPost "/bought"
           _hxTarget "this"
@@ -162,7 +162,7 @@ let boughtBtcModal =
                                 button [ _type "button"; _class "btn-close"; _onclick "closeModal()" ] []
                             ]
                             div [ _class "modal-body" ] [
-                                txsForm []
+                                newTxsForm []
                             ] ] ]
                    ]
     ]
@@ -249,8 +249,8 @@ let deleteModal (t: Transaction) =
                 ]
             ]
     ]
-
-let editModal (t: Transaction) =
+    
+let editTxForm (t: Transaction) (errs: string list) =
     let btcAmount = (decimal t.Amount).ToString("F8")
     
     let fiatAmount =
@@ -261,8 +261,105 @@ let editModal (t: Transaction) =
     let fiatCurrency =
         match t.Fiat with
         | None -> ""
-        | Some f -> string f.Currency
+        | Some f -> string f.Currency    
     
+    form [
+        _hxPut $"/tx/edit/{t.Id}"
+        _hxTarget "this"
+        _hxSwap "outerHTML"
+    ] [
+        div [ _class "row" ] (errs |> List.map (fun e -> div [ _class "col-sm-12 text-red" ] [ str e ]))
+        div [ _class "row mb-3" ] [
+            div [ _class "col-sm-12 col-md-4" ] [
+                label [ _class "form-label"; _required;  ] [ str "Tx" ]
+                select [ _type "button"; _name "Type"; _required; _class "form-select" ] [
+                    option
+                        ([ _value "Buy" ] @ if t.TxName = "BUY" then [ _selected ] else [])
+                        [ str "Buy" ]
+                    option
+                        ([ _value "Sell" ] @ if t.TxName = "SELL" then [ _selected ] else [] )
+                        [ str "Sell" ]
+                    option
+                        ([ _value "Income" ] @ if t.TxName = "Income" then [ _selected ] else [])
+                        [ str "Income" ]
+                    option
+                        ([ _value "Spend"; ] @ if t.TxName = "Spend" then [ _selected ] else [])
+                        [ str "Spend" ]
+                ]
+            ]
+
+            div [ _class "col-sm-12 col-md-6" ] [
+                label [ _class "form-label"; _required; _min "0" ] [ str "Btc Amount" ]
+                div [ _class "input-group" ] [
+                    input [
+                        _name "amount"
+                        _required
+                        _class "form-control"
+                        _value btcAmount
+                    ]
+                    select [ _name "btcUnit"; _required; _class "form-select" ] [
+                        option [ _value "Btc"; _selected ] [ str "BTC" ]
+                        option [ _value "Sats"; ] [ str "SATS" ]
+                    ]
+                ]
+            ]
+        ]
+        div [ _class "row mb-3" ] [
+            div [ _class "col-sm-12 col-md-4" ] [
+                label [ _class "form-label"; _required; _min "0" ] [ str "Fiat Amount" ]
+                input [
+                    _name "fiatAmount"
+                    _required
+                    _class "form-control"
+                    _value fiatAmount
+                ] ]
+            div [ _class "col-sm-12 col-md-4" ] [
+                label [ _class "form-label"; _required; _min "0" ] [ str "Fiat Currency" ]
+                select [
+                    _type "text"
+                    _name "fiat"
+                    _required
+                    _class "form-select"
+                ] [
+                    option
+                        ([ _value "CAD" ] @ if fiatCurrency = "CAD" then [ _selected ] else [])
+                        [ str "CAD" ]
+                    option
+                        ([ _value "USD" ] @ if fiatCurrency = "USD" then [ _selected ] else [])
+                        [ str "USD" ]
+                ]
+            ]
+        ]
+
+        div [ _class "mb-3" ] [
+            label [ _class "form-label" ] [ str "Date" ]
+            input [
+                _type "datetime-local"
+                _name "date"
+                _required
+                _class "form-control"
+                _value (t.DateTime.ToString("yyyy-MM-ddTHH:mm"))
+            ]
+        ]
+
+        div [ _class "row" ] [
+            div [ _class "col" ] [
+                button [ _class "btn btn-secondary"; _onclick "closeModal()" ] [
+                    str "Cancel"
+                ]
+            ]
+            div [ _class "col-auto" ] [
+                button [
+                    _type "submit"
+                    _class "btn btn-success"
+                ] [
+                    str "Save"
+                ]
+            ]
+        ]
+    ]
+
+let editModal (t: Transaction) =    
     div [] [
         div [
             _class "modal modal-backdrop fade show"
@@ -279,100 +376,7 @@ let editModal (t: Transaction) =
                             button [ _type "button"; _class "btn-close"; _onclick "closeModal()" ] []
                         ]
                         div [ _class "modal-body" ] [
-                            form [
-                                _hxPut $"/tx/edit/{t.Id}"
-                                _hxTarget "this"
-                                _hxSwap "outerHTML"
-                            ] [
-                                div [ _class "row mb-3" ] [
-                                    div [ _class "col-sm-12 col-md-4" ] [
-                                        label [ _class "form-label"; _required;  ] [ str "Tx" ]
-                                        select [ _type "button"; _name "Type"; _required; _class "form-select" ] [
-                                            option
-                                                ([ _value "Buy" ] @ if t.TxName = "BUY" then [ _selected ] else [])
-                                                [ str "Buy" ]
-                                            option
-                                                ([ _value "Sell" ] @ if t.TxName = "SELL" then [ _selected ] else [] )
-                                                [ str "Sell" ]
-                                            option
-                                                ([ _value "Income" ] @ if t.TxName = "Income" then [ _selected ] else [])
-                                                [ str "Income" ]
-                                            option
-                                                ([ _value "Spend"; ] @ if t.TxName = "Spend" then [ _selected ] else [])
-                                                [ str "Spend" ]
-                                        ]
-                                    ]
-
-                                    div [ _class "col-sm-12 col-md-6" ] [
-                                        label [ _class "form-label"; _required; _min "0" ] [ str "Btc Amount" ]
-                                        div [ _class "input-group" ] [
-                                            input [
-                                                _name "amount"
-                                                _required
-                                                _class "form-control"
-                                                _value btcAmount
-                                            ]
-                                            select [ _name "btcUnit"; _required; _class "form-select" ] [
-                                                option [ _value "Btc"; _selected ] [ str "BTC" ]
-                                                option [ _value "Sats"; ] [ str "SATS" ]
-                                            ]
-                                        ]
-                                    ]
-                                ]
-                                div [ _class "row mb-3" ] [
-                                    div [ _class "col-sm-12 col-md-4" ] [
-                                        label [ _class "form-label"; _required; _min "0" ] [ str "Fiat Amount" ]
-                                        input [
-                                            _name "fiatAmount"
-                                            _required
-                                            _class "form-control"
-                                            _value fiatAmount
-                                        ] ]
-                                    div [ _class "col-sm-12 col-md-4" ] [
-                                        label [ _class "form-label"; _required; _min "0" ] [ str "Fiat Currency" ]
-                                        select [
-                                            _type "text"
-                                            _name "fiat"
-                                            _required
-                                            _class "form-select"
-                                        ] [
-                                            option
-                                                ([ _value "CAD" ] @ if fiatCurrency = "CAD" then [ _selected ] else [])
-                                                [ str "CAD" ]
-                                            option
-                                                ([ _value "USD" ] @ if fiatCurrency = "USD" then [ _selected ] else [])
-                                                [ str "USD" ]
-                                        ]
-                                    ]
-                                ]
-
-                                div [ _class "mb-3" ] [
-                                    label [ _class "form-label" ] [ str "Date" ]
-                                    input [
-                                        _type "datetime-local"
-                                        _name "date"
-                                        _required
-                                        _class "form-control"
-                                        _value (t.DateTime.ToString("yyyy-MM-ddTHH:mm"))
-                                    ]
-                                ]
-
-                                div [ _class "row" ] [
-                                    div [ _class "col" ] [
-                                        button [ _class "btn btn-secondary"; _onclick "closeModal()" ] [
-                                            str "Cancel"
-                                        ]
-                                    ]
-                                    div [ _class "col-auto" ] [
-                                        button [
-                                            _type "submit"
-                                            _class "btn btn-success"
-                                        ] [
-                                            str "Save"
-                                        ]
-                                    ]
-                                ]
-                            ]
+                            editTxForm t []
                         ]
                     ]
                 ]
