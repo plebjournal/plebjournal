@@ -2,7 +2,7 @@
 
 Pleb Journal is a Bitcoin only portfolio tracking logbook, with tools to help the plebs stay focused on stacking sats and ignoring the noise.
 
-[plebjournal.com](plebjournal.com)
+[plebjournal.com](https://plebjournal.com)
 
 I wasn't satisfied with the existing 'crypto' portfolio tracking software so I decided to build the system I wished existed.
 
