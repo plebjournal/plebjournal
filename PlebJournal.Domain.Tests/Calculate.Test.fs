@@ -33,6 +33,32 @@ module FoldDailyTransactions =
             DateTime(2023, 01, 02), someBtc -0.75m
         ]
         
+module MovingAverage =
+    [<Fact>]
+    let ``should calculate simple moving average`` () =
+        let prices = [|
+            { PriceAtDate.Date = DateTime(2023, 01, 01); Price = 200m }
+            { PriceAtDate.Date = DateTime(2023, 01, 02); Price = 200m }
+            { PriceAtDate.Date = DateTime(2023, 01, 03); Price = 200m }
+            { PriceAtDate.Date = DateTime(2023, 01, 04); Price = 400m }
+            { PriceAtDate.Date = DateTime(2023, 01, 05); Price = 500m }
+        |]
+        let expected = [
+            { Date = DateTime(2023, 01, 03)
+              Price = 200m
+              MA = 200m }
+            { Date = DateTime(2023, 01, 04)
+              Price = 400m
+              MA = 266.67m }
+            { Date = DateTime(2023, 01, 05)
+              Price = 500m
+              MA = 366.67m }
+        ]
+        
+        let actual = ma prices 3 |> Seq.sortBy (fun p -> p.Date)
+        
+        Expect.sequenceEqual actual expected "should equal"
+        
 module PortfolioHistoricalValue =
     [<Fact>]
     let ``should generate a series of dates and value for a portfolio`` () =

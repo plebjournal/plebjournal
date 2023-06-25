@@ -151,8 +151,9 @@ module Calculate =
         [ 0 .. historicalUsd.Length - 1 ]
         |> Seq.fold
             (fun s (idx: int) ->
-                let maybeSlice = Array.tryGetRange (idx - days) idx historicalUsd
-
+                let startAt = (idx + 1) - days
+                let endAt = startAt + (days - 1)
+                let maybeSlice = Array.tryGetRange startAt endAt historicalUsd
                 let wma =
                     match maybeSlice with
                     | None -> None
