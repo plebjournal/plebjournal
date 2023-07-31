@@ -1,17 +1,14 @@
 module Stacker.Web.Program
 
 open System
-open System.Reflection
 open Microsoft.AspNetCore.Builder
-open Microsoft.AspNetCore.Identity
 open Microsoft.Extensions.Logging
 open Microsoft.Extensions.DependencyInjection
 open Microsoft.EntityFrameworkCore
+open PlebJournal.Db
 open Quartz
 open Saturn
-open PlebJournal.Identity
 open Stacker.Web
-open Stacker.Web.Config
 open Stacker.Web.Jobs
     
 let addBackgroundJobs (svc: IServiceCollection) =
@@ -19,38 +16,25 @@ let addBackgroundJobs (svc: IServiceCollection) =
         .AddQuartzServer(fun opts -> opts.WaitForJobsToComplete <- true)
 
 let addIdentityDb (svc: IServiceCollection) =
-    svc.AddDbContext<StackerDbContext>(fun opts ->
-            opts.UseNpgsql(connString()) |> ignore)
-        .AddIdentity<IdentityUser, IdentityRole>()
+    // svc.AddDbContext<StackerDbContext>(fun opts ->
+    //         opts.UseNpgsql(connString()) |> ignore)
+    //     .AddIdentity<IdentityUser, IdentityRole>()
+    //     .AddEntityFrameworkStores() |> ignore
+    // svc.AddScoped<DbContext, StackerDbContext>() |> ignore
+    svc.AddDbContext<PlebJournalDb>()
+        .AddIdentity<PlebUser, Role>()
         .AddEntityFrameworkStores() |> ignore
-    svc.AddScoped<DbContext, StackerDbContext>() |> ignore
+    svc.AddScoped<DbContext, PlebJournalDb>() |> ignore
     svc
 
-open DbUp
-
 let ensureDbExists (svc: IServiceProvider) =
-    let logger = svc.GetService<ILoggerFactory>().CreateLogger("DbUp")
-    let conn = connString()
-    logger.LogInformation("Conn string {conn}", conn)
-    try
-        EnsureDatabase.For.PostgresqlDatabase(connString())
-    with ex ->
-        logger.LogWarning(ex.Message)
-        logger.LogInformation("Could not create postgres db. Maybe it already exists.")
+    use scope = svc.CreateScope()
+    let db = scope.ServiceProvider.GetRequiredService<PlebJournalDb>()
+    let logger = svc.GetService<ILoggerFactory>().CreateLogger("DbMigration")
+    logger.LogInformation("Attempting to create and migrate db")
     
-    let upgrade =
-        DeployChanges.To.PostgresqlDatabase(conn, "public")
-            .WithScriptsEmbeddedInAssembly(Assembly.GetExecutingAssembly())
-            .LogToAutodetectedLog()
-            .Build()
-            
-    let res = upgrade.PerformUpgrade()
-    
-    match res.Successful with
-    | true -> logger.LogInformation("Db Created Successfully")
-    | false ->
-        logger.LogCritical(``exception`` = res.Error, message = "Db upgrade failed")
-        raise res.Error
+    db.Database.Migrate()
+    logger.LogInformation("Database migration complete")
 
 let configureApp (app: IApplicationBuilder) =    
     do ensureDbExists app.ApplicationServices
@@ -62,7 +46,7 @@ let app =
     application {
         use_static "wwwroot"
         use_router Routes.topRouter
-        service_config addBackgroundJobs
+        //service_config addBackgroundJobs
         service_config addIdentityDb
         app_config configureApp
     }
