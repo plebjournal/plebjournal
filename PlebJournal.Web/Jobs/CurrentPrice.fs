@@ -1,12 +1,14 @@
 module Stacker.Web.Jobs.CurrentPrice
 
 open Microsoft.Extensions.Logging
+open PlebJournal.Db
 open Quartz
 open Stacker.Web.CoinGecko
 open Stacker.Domain
 open Stacker.Web.Repository.PostgresDb.CurrentPrice.Update
 
-type CurrentPrice(loggerFactory: ILoggerFactory) =
+type CurrentPrice(loggerFactory: ILoggerFactory,
+                  db: PlebJournalDb) =
     interface IJob with
         member this.Execute _ =
             let logger = loggerFactory.CreateLogger("Current Price")
@@ -20,15 +22,15 @@ type CurrentPrice(loggerFactory: ILoggerFactory) =
                 
                 let! usd = usd'
                 logger.LogInformation("Loaded price {price} {currency} at {date}", usd.Price, usd.Currency, usd.Date)
-                do! upsertCurrentPrice usd
+                do! upsertCurrentPrice db usd
                 
                 let! cad = cad'
                 logger.LogInformation("Loaded price {price} {currency} at {date}", cad.Price, cad.Currency, cad.Date)
-                do! upsertCurrentPrice cad
+                do! upsertCurrentPrice db cad
                 
                 let! eur = eur'
                 logger.LogInformation("Loaded price {price} {currency} at {date}", eur.Price, eur.Currency, eur.Date)
-                do! upsertCurrentPrice eur
+                do! upsertCurrentPrice db eur
                 
                 return ()
             }

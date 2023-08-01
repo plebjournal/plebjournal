@@ -1,6 +1,9 @@
 module Stacker.Web.Repository
 
 open System
+open PlebJournal.Db
+open Microsoft.EntityFrameworkCore
+open PlebJournal.Db.Models
 open Stacker
 open Stacker.Charting.Domain
 open Stacker.Domain
@@ -286,18 +289,16 @@ module PostgresDb =
             
         module Read =
             open Stacker.Calculate
-            let private getMostRecentQuery =
-                """
-                select date from prices
-                where currency = @currency            
-                order by date desc limit 1
-                """
+            open System.Linq
                 
-            let getMostRecentPrice (currency: Fiat) =
+            let getMostRecentPrice (db: PlebJournalDb) (currency: Fiat)  =
                 task {
-                    let! res = postgresQuery getMostRecentQuery [ "currency", Sql.string (currency.ToString()) ]
-                                (fun row -> row.dateTime "date")
-                    return res |> List.tryHead
+                    let! res =
+                        db.Prices
+                            .Where(fun p -> p.Currency = currency.ToString())
+                            .OrderByDescending(fun p -> p.Date)
+                            .FirstOrDefaultAsync()
+                    return res |> Option.ofObj |> Option.map (fun p -> p.Date)
                 }
                 
             let private getPricesForCurrency  =
@@ -331,75 +332,56 @@ module PostgresDb =
                 }
                 
         
-        module Insert =
-            let private insertQuery =
-                """
-                insert into prices
-                    (id, date, price, currency)
-                values 
-                    (@id, @date, @price, @currency)
-                """
-                
-            let private findHistoricalPriceQuery =
-                """
-                    select id from prices where id = @id
-                """
-            let private insertPriceToProps (price: PriceAtDateDao) =
-                [
-                    "id", Sql.uuid price.Id
-                    "date", Sql.date price.Date.Date
-                    "price", Sql.decimal price.Price
-                    "currency", Sql.string price.Currency
-                ]
-            
-            let insertHistoricalPrice (price: PriceAtDateDao) =
+        module Insert =   
+            let insertHistoricalPrices (db: PlebJournalDb) (prices: PriceAtDateDao list) =
+                let toInsert = prices |> List.map (fun p ->
+                    new Price(
+                        Date = p.Date.ToUniversalTime(),
+                        BtcPrice = p.Price,
+                        Currency = p.Currency
+                    ))
                 task {
-                    let! _ = postgresNonQuery insertQuery (insertPriceToProps price)
-                    return ()
-                }
-                
-            let insertHistoricalPrices (prices: PriceAtDateDao list) =
-                task {
-                    let! _ = postgresManyNonQuery [
-                        insertQuery, (prices |> List.map insertPriceToProps)
-                    ]
+                    do! db.Prices.AddRangeAsync(toInsert)
+                    let! _ = db.SaveChangesAsync()
                     return ()
                 }
             
-            let insertUnique (price: PriceAtDateDao) =
-                let queryProps = [
-                    "id", Sql.uuid price.Id
-                ]
-                task {
-                    let! existing =
-                        postgresQuery findHistoricalPriceQuery queryProps (fun r -> r.uuid "id")
-                    match existing with
-                    | [] -> do! insertHistoricalPrice price
-                    | _ -> return ()
+            let insertUnique (db: PlebJournalDb) (price: PriceAtDateDao) =
+                let price = new Price(
+                    Id = price.Id,
+                    Date = price.Date.ToUniversalTime(),
+                    BtcPrice = price.Price,
+                    Currency = price.Currency)
+                task {                    
+                    let! p = db.Prices.FindAsync(price.Id)
+                    match (Option.ofObj p) with 
+                    | Some _ -> return ()
+                    | None ->
+                        let! _ = db.Prices.AddAsync(price)
+                        let! _ = db.SaveChangesAsync()
+                        return ()
                 }
     module CurrentPrice =
+        open System.Linq
         module Update =
-            let upsertCurrentPriceQuery =
-                """
-                insert into current_prices
-                    (id, price, currency)
-                values 
-                    (@id, @price, @currency)
-                on conflict (currency)
-                do 
-                    update
-                        set price = @price,
-                            updated = now()
-                """
-                
-            let upsertCurrentPrice (price: Prices.PriceAtDateDao) =
+            let upsertCurrentPrice (db: PlebJournalDb) (price: Prices.PriceAtDateDao) =
                 task {
-                    let! a = Postgres.postgresNonQuery upsertCurrentPriceQuery [
-                        "id", Sql.uuid price.Id
-                        "price", Sql.decimal price.Price
-                        "currency", Sql.string price.Currency
-                    ]
-                    return ()
+                    let! existing = db.CurrentPrices.Where(fun p -> p.Currency = price.Currency).FirstOrDefaultAsync()
+                    match (Option.ofObj existing) with
+                    | None ->
+                        let toInsert = CurrentPrice(
+                            BtcPrice = price.Price,
+                            Currency = price.Currency,
+                            Created = DateTime.UtcNow,
+                            Updated = DateTime.UtcNow)
+                        let! _ = db.AddAsync(toInsert)
+                        let! _ = db.SaveChangesAsync()
+                        return ()
+                    | Some currPrice ->
+                        currPrice.BtcPrice <- price.Price
+                        currPrice.Updated <- DateTime.UtcNow
+                        let! _ = db.SaveChangesAsync()
+                        return ()
                 }
                 
         module Read =

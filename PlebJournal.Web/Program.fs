@@ -16,11 +16,6 @@ let addBackgroundJobs (svc: IServiceCollection) =
         .AddQuartzServer(fun opts -> opts.WaitForJobsToComplete <- true)
 
 let addIdentityDb (svc: IServiceCollection) =
-    // svc.AddDbContext<StackerDbContext>(fun opts ->
-    //         opts.UseNpgsql(connString()) |> ignore)
-    //     .AddIdentity<IdentityUser, IdentityRole>()
-    //     .AddEntityFrameworkStores() |> ignore
-    // svc.AddScoped<DbContext, StackerDbContext>() |> ignore
     svc.AddDbContext<PlebJournalDb>()
         .AddIdentity<PlebUser, Role>()
         .AddEntityFrameworkStores() |> ignore
@@ -46,7 +41,7 @@ let app =
     application {
         use_static "wwwroot"
         use_router Routes.topRouter
-        //service_config addBackgroundJobs
+        service_config addBackgroundJobs
         service_config addIdentityDb
         app_config configureApp
     }

@@ -21,7 +21,7 @@ let marketResponseToPriceDao (fiat: Fiat) (coinGecko: BtcMarketResponse) =
         | [ timestamp; price ] ->
             { Id = Guid.NewGuid()
               Price = decimal price
-              Date = int64 timestamp |> DateTimeOffset.FromUnixTimeMilliseconds |> (fun d -> d.Date)
+              Date = int64 timestamp |> DateTimeOffset.FromUnixTimeMilliseconds |> fun d -> d.UtcDateTime.Date
               Currency = fiat.ToString() }
         | _ -> failwith "Failed to read response from coingecko")
 

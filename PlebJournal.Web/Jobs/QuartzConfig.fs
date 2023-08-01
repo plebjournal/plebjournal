@@ -19,13 +19,6 @@ let configure (quartz: IServiceCollectionQuartzConfigurator) =
     quartz.AddTrigger(fun trigger -> trigger.ForJob("CreateUserJob").StartNow() |> ignore)
     |> ignore
 
-    // Initialize historical prices
-    quartz.AddJob<InitHistorical>(fun job -> job.WithIdentity("InitHistoricalPrices") |> ignore)
-    |> ignore
-
-    quartz.AddTrigger(fun trigger -> trigger.ForJob("InitHistoricalPrices").StartNow() |> ignore)
-    |> ignore
-
     // Update historical prices
     quartz.AddJob<UpdateHistorical>(fun job -> job.WithIdentity("UpdateHistoricalPricesJob") |> ignore)
     |> ignore
@@ -33,8 +26,8 @@ let configure (quartz: IServiceCollectionQuartzConfigurator) =
     quartz.AddTrigger(fun trigger ->
         trigger
             .ForJob("UpdateHistoricalPricesJob")
-            .StartAt(DateTimeOffset.Now.AddSeconds(10))
-            .WithSimpleSchedule(fun sched -> sched.RepeatForever().WithIntervalInHours(6) |> ignore)
+            .StartAt(DateTimeOffset.Now.AddSeconds(5))
+            .WithSimpleSchedule(fun sched -> sched.RepeatForever().WithIntervalInHours(12) |> ignore)
         |> ignore)
     |> ignore
 

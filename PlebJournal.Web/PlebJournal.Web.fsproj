@@ -8,7 +8,8 @@
     <ItemGroup>
         <Compile Include="Config.fs" />
         <Compile Include="Json.fs" />
-        <None Include="Data\SetupData.fsx" />
+        <None Include="Scripts\InvestigateMA.fsx" />
+        <None Include="Scripts\SetupData.fsx" />
         <EmbeddedResource Include="Db\Migrations\01_IdentitySchema.sql">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </EmbeddedResource>

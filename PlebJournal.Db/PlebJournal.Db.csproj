@@ -20,4 +20,13 @@
       <Folder Include="Migrations\" />
     </ItemGroup>
 
+    <ItemGroup>
+      <None Remove="Seed\historical-usd-prices.json" />
+      <Content Include="Seed\historical-usd-prices.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Content>
+    </ItemGroup>
+
+
+
 </Project>

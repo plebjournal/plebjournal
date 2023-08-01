@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using PlebJournal.Db.Models;
+using PlebJournal.Db.Seed;
 
 namespace PlebJournal.Db;
 
@@ -22,4 +23,9 @@ public class PlebJournalDb : IdentityDbContext<PlebUser, Role, Guid>
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         => optionsBuilder.UseNpgsql("User ID=postgres;Password=password;Host=localhost;Port=5469;");
 
+    protected override void OnModelCreating(ModelBuilder builder)
+    {
+        builder.Entity<Price>().HasData(SeedData.LoadSeedData());
+        base.OnModelCreating(builder);
+    }
 }
