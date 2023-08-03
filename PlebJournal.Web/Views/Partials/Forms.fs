@@ -119,6 +119,7 @@ let newTxsForm (errs: string list) =
               div
                   [ _class "mb-3" ]
                   [ label [ _class "form-label" ] [ str "Date" ]
+                    input [ _type "hidden"; _name "timeZoneOffset"; _id "time-zone-offset"; _value "" ]
                     input [
                         _type "datetime-local"
                         _name "date"
@@ -163,6 +164,13 @@ let boughtBtcModal =
                             ]
                             div [ _class "modal-body" ] [
                                 newTxsForm []
+                                script [] [
+                                    rawText
+                                        """
+                                        var timezoneOffset = new Date().getTimezoneOffset();
+                                        document.getElementById("time-zone-offset").value = timezoneOffset; 
+                                        """
+                                    ]                
                             ] ] ]
                    ]
     ]
@@ -333,6 +341,7 @@ let editTxForm (t: Transaction) (errs: string list) =
 
         div [ _class "mb-3" ] [
             label [ _class "form-label" ] [ str "Date" ]
+            input [ _type "hidden"; _name "timeZoneOffset"; _id "time-zone-offset"; _value "" ]
             input [
                 _type "datetime-local"
                 _name "date"
@@ -377,6 +386,13 @@ let editModal (t: Transaction) =
                         ]
                         div [ _class "modal-body" ] [
                             editTxForm t []
+                            script [] [
+                                rawText
+                                    """
+                                    var timezoneOffset = new Date().getTimezoneOffset();
+                                    document.getElementById("time-zone-offset").value = timezoneOffset; 
+                                    """                                
+                            ]
                         ]
                     ]
                 ]

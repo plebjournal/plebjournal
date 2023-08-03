@@ -5,6 +5,7 @@ open System.Security.Claims
 open Giraffe
 open Microsoft.AspNetCore.Http
 open Microsoft.AspNetCore.Identity
+open PlebJournal.Db
 open Saturn
 
 let redirectToLogin = redirectTo false "/login"
@@ -23,7 +24,7 @@ let withUserId (handler: Guid -> HttpHandler) : HttpHandler =
 let logout : HttpHandler =
     fun next ctx ->
         task {
-            let signInManager = ctx.GetService<SignInManager<IdentityUser>>()
+            let signInManager = ctx.GetService<SignInManager<PlebUser>>()
             do! signInManager.SignOutAsync()
             return! redirectTo false "/" next ctx
         }

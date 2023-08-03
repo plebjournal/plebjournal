@@ -13,11 +13,9 @@ module CreateUser =
         }
 
     let createAdminUser (userManager: UserManager<PlebUser>) =
-        let adminUser = PlebUser()
-        adminUser.UserName <- "plebjournal"
-
+        let adminUser = PlebUser("plebjournal")
         task {
-            let! res = userManager.CreateAsync(adminUser, "P@ssw0rd!")
+            let! res = userManager.CreateAsync(adminUser, "Password123")
             let! b = userManager.AddToRoleAsync(adminUser, "admin")
             return ()
         }

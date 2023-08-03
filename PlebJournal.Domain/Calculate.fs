@@ -98,8 +98,8 @@ module Calculate =
                     txsWithLatestDate
             folded 
 
-    let portfolioHistoricalValue (txs: Transaction list) (historicalUsd: PriceAtDate array) =
-        if txs.IsEmpty then [] else
+    let portfolioHistoricalValue (txs: Transaction array) (historicalUsd: PriceAtDate array) =
+        if txs.Length = 0 then [] else
         let dayTotals = txs |> foldDailyTransactions |> Seq.toList
 
         let movingSumOfTotals = dayTotals |> movingSumOfTxs |> Seq.toList
@@ -196,11 +196,11 @@ module Calculate =
             []
         |> Seq.somes
 
-    let movingCostBasis (txs: Transaction list) =
+    let movingCostBasis (txs: Transaction seq) =
         txs
-        |> List.map (fun tx -> tx.DateTime, tx.Fiat)
-        |> List.filter (fun (d, fiat) -> fiat.IsSome)
-        |> List.fold
+        |> Seq.map (fun tx -> tx.DateTime, tx.Fiat)
+        |> Seq.filter (fun (d, fiat) -> fiat.IsSome)
+        |> Seq.fold
             (fun s (d, el) ->
                 match s with
                 | [] -> [ d, el.Value.Amount ]

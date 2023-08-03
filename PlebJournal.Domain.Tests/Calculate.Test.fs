@@ -62,11 +62,11 @@ module MovingAverage =
 module PortfolioHistoricalValue =
     [<Fact>]
     let ``should generate a series of dates and value for a portfolio`` () =
-        let txs = [
+        let txs = [|
             Buy { Id = Guid.Empty; Date = DateTime(2023, 01, 01); Amount = BtcAmount.OfBtc(1.0m); Fiat = { Amount = 1000m; Currency = USD } }
             Buy { Id = Guid.Empty; Date = DateTime(2023, 01, 05); Amount = BtcAmount.OfBtc(1.0m); Fiat = { Amount = 1250m; Currency = USD } }
 
-        ]
+        |]
         
         let usdPriceHistory = [|
             { PriceAtDate.Date = DateTime(2023, 01, 01); Price = 1000m }
@@ -98,7 +98,7 @@ module PortfolioHistoricalValue =
             { PriceAtDate.Date = DateTime(2023, 01, 06); Price = 1250m }
         |]
         
-        let res = portfolioHistoricalValue [] usdPriceHistory
+        let res = portfolioHistoricalValue [| |] usdPriceHistory
         Expect.sequenceEqual res [ ] "should equal"        
 
 module PercentChange =

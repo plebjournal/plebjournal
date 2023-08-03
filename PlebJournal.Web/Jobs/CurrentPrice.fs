@@ -15,20 +15,16 @@ type CurrentPrice(loggerFactory: ILoggerFactory,
             logger.LogInformation("Updating current fiat prices")
             
             task {
-                // run these tasks in parallel
-                let cad' = fetchCurrentPrice CAD
-                let eur' = fetchCurrentPrice EUR
-                let usd' = fetchCurrentPrice USD
+                let! cad = fetchCurrentPrice CAD
+                let! eur = fetchCurrentPrice EUR
+                let! usd = fetchCurrentPrice USD
                 
-                let! usd = usd'
                 logger.LogInformation("Loaded price {price} {currency} at {date}", usd.Price, usd.Currency, usd.Date)
                 do! upsertCurrentPrice db usd
                 
-                let! cad = cad'
                 logger.LogInformation("Loaded price {price} {currency} at {date}", cad.Price, cad.Currency, cad.Date)
                 do! upsertCurrentPrice db cad
                 
-                let! eur = eur'
                 logger.LogInformation("Loaded price {price} {currency} at {date}", eur.Price, eur.Currency, eur.Date)
                 do! upsertCurrentPrice db eur
                 

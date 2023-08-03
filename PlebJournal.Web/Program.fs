@@ -16,8 +16,11 @@ let addBackgroundJobs (svc: IServiceCollection) =
         .AddQuartzServer(fun opts -> opts.WaitForJobsToComplete <- true)
 
 let addIdentityDb (svc: IServiceCollection) =
-    svc.AddDbContext<PlebJournalDb>()
-        .AddIdentity<PlebUser, Role>()
+    svc.AddDbContext<PlebJournalDb>(fun opts ->
+        opts.UseNpgsql(Config.connString()) |> ignore)
+        .AddIdentity<PlebUser, Role>(fun opts ->
+            opts.Password.RequiredLength <- 4
+            opts.Password.RequireNonAlphanumeric <- false)
         .AddEntityFrameworkStores() |> ignore
     svc.AddScoped<DbContext, PlebJournalDb>() |> ignore
     svc

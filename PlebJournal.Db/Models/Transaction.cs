@@ -6,6 +6,8 @@ namespace PlebJournal.Db.Models;
 [Index(nameof(Date))]
 public class Transaction : Entity
 {
+    public required PlebUser PlebUser { get; set; }
+
     public required DateTime Date { get; set; }
 
     [MaxLength(50)]
