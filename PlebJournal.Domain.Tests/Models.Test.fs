@@ -15,6 +15,7 @@ let ``should validate bad transaction`` () =
         BtcUnit = Sats
         FiatAmount = 0.0m
         Fiat = USD
+        TimeZoneOffset = 420 
         Date = DateTime(2023, 01, 01) 
     }
     

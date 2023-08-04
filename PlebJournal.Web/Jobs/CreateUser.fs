@@ -2,34 +2,36 @@ namespace Stacker.Web.Jobs
 
 open Microsoft.Extensions.Logging
 open Microsoft.AspNetCore.Identity
+open PlebJournal.Db
 open Quartz
 
 module CreateUser =
-    let adminExists (userManager: UserManager<IdentityUser>) =
+    let adminExists (userManager: UserManager<PlebUser>) =
         task {
-            let! admin = userManager.FindByNameAsync("admin")
+            let! admin = userManager.FindByNameAsync("plebjournal")
             return admin <> null
         }
 
-    let createAdminUser (userManager: UserManager<IdentityUser>) =
-        let adminUser = IdentityUser("jsaucier")
-
+    let createAdminUser (userManager: UserManager<PlebUser>) =
+        let adminUser = PlebUser("plebjournal")
         task {
-            let! res = userManager.CreateAsync(adminUser, "P@ssw0rd!")
+            let! res = userManager.CreateAsync(adminUser, "Password123")
             let! b = userManager.AddToRoleAsync(adminUser, "admin")
             return ()
         }
 
-    let adminRoleExists (roleManager: RoleManager<IdentityRole>) = roleManager.RoleExistsAsync("admin")
+    let adminRoleExists (roleManager: RoleManager<Role>) =
+        roleManager.RoleExistsAsync("admin")
 
-    let createAdminRole (roleManager: RoleManager<IdentityRole>) =
+    let createAdminRole (roleManager: RoleManager<Role>) =
         task {
             let! exists = adminRoleExists roleManager
 
             if exists then
                 ()
             else
-                let adminRole = IdentityRole("admin")
+                let adminRole = Role()
+                adminRole.Name <- "admin"
                 let! _ = roleManager.CreateAsync(adminRole)
                 return ()
         }
@@ -37,8 +39,8 @@ module CreateUser =
 type CreateUserJob
     (
         loggerFactory: ILoggerFactory,
-        userManager: UserManager<IdentityUser>,
-        roleManager: RoleManager<IdentityRole>
+        userManager: UserManager<PlebUser>,
+        roleManager: RoleManager<Role>
     ) =
     interface IJob with
         member this.Execute _ =

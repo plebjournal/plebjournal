@@ -8,6 +8,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlebJournal.Identity", "Ple
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "PlebJournal.Domain.Tests", "PlebJournal.Domain.Tests\PlebJournal.Domain.Tests.fsproj", "{A4EC5912-35E9-4F8C-988C-E978B505C39B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlebJournal.Db", "PlebJournal.Db\PlebJournal.Db.csproj", "{B2F5737E-B6EC-4F3F-A2B3-DF23F1C94FE9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -30,5 +32,9 @@ Global
 		{A4EC5912-35E9-4F8C-988C-E978B505C39B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A4EC5912-35E9-4F8C-988C-E978B505C39B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A4EC5912-35E9-4F8C-988C-E978B505C39B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B2F5737E-B6EC-4F3F-A2B3-DF23F1C94FE9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B2F5737E-B6EC-4F3F-A2B3-DF23F1C94FE9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B2F5737E-B6EC-4F3F-A2B3-DF23F1C94FE9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B2F5737E-B6EC-4F3F-A2B3-DF23F1C94FE9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

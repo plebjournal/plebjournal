@@ -20,10 +20,10 @@ printfn $"loaded prices {historicalPrices.Length}"
 let mapped =
     historicalPrices
     |> Array.map (fun price ->
-        { Id = Guid.NewGuid()
-          Price = price.Price
-          Date = price.Date
-          Currency = "USD" })
+        {| Id = Guid.NewGuid()
+           BtcPrice = price.Price
+           Date = DateTime.SpecifyKind(price.Date, DateTimeKind.Utc)
+           Currency = "USD" |})
 
 printfn $"mapped prices. {mapped.Length}"
 

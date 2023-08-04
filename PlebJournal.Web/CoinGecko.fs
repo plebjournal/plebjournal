@@ -3,7 +3,7 @@ module Stacker.Web.CoinGecko
 open System
 open System.Net
 open Stacker.Domain
-open Repository.PostgresDb.Prices
+open Repository.Prices
 open System.Net.Http
 open FsHttp
 
@@ -21,7 +21,7 @@ let marketResponseToPriceDao (fiat: Fiat) (coinGecko: BtcMarketResponse) =
         | [ timestamp; price ] ->
             { Id = Guid.NewGuid()
               Price = decimal price
-              Date = int64 timestamp |> DateTimeOffset.FromUnixTimeMilliseconds |> (fun d -> d.Date)
+              Date = int64 timestamp |> DateTimeOffset.FromUnixTimeMilliseconds |> fun d -> d.UtcDateTime.Date
               Currency = fiat.ToString() }
         | _ -> failwith "Failed to read response from coingecko")
 

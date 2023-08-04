@@ -16,6 +16,7 @@ type CreateBtcTransaction =
       BtcUnit: BtcUnit
       FiatAmount: decimal
       Date: DateTime
+      TimeZoneOffset: int
       Fiat: Fiat }
 
 [<CLIMutable>]
@@ -26,6 +27,7 @@ type EditBtcTransaction =
       BtcUnit: BtcUnit
       FiatAmount: decimal
       Date: DateTime
+      TimeZoneOffset: int
       AmountType: string
       Fiat: Fiat }
 

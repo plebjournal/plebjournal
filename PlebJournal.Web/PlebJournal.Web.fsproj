@@ -8,20 +8,8 @@
     <ItemGroup>
         <Compile Include="Config.fs" />
         <Compile Include="Json.fs" />
-        <None Include="Data\SetupData.fsx" />
-        <EmbeddedResource Include="Db\Migrations\01_IdentitySchema.sql">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </EmbeddedResource>
-        <EmbeddedResource Include="Db\Migrations\02_Transactions.sql">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </EmbeddedResource>
-        <EmbeddedResource Include="Db\Migrations\03_Prices.sql">
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </EmbeddedResource>
-        <EmbeddedResource Include="Db\Migrations\04_CurrentPrice.sql">
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </EmbeddedResource>
-        <Compile Include="Db\Postgres.fs" />
+        <None Include="Scripts\InvestigateMA.fsx" />
+        <None Include="Scripts\SetupData.fsx" />
         <Compile Include="Repository.fs" />
         <Compile Include="CoinGecko.fs" />
         <Compile Include="Migrations\*.fs" />
@@ -52,6 +40,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\PlebJournal.Db\PlebJournal.Db.csproj" />
       <ProjectReference Include="..\PlebJournal.Domain\PlebJournal.Domain.fsproj" />
       <ProjectReference Include="..\PlebJournal.Identity\PlebJournal.Identity.csproj" />
     </ItemGroup>
