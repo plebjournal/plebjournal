@@ -39,7 +39,7 @@ let configure (quartz: IServiceCollectionQuartzConfigurator) =
         trigger
             .ForJob("UpdateCurrentPrices")
             .StartNow()
-            .WithSimpleSchedule(fun sched -> sched.RepeatForever().WithIntervalInMinutes(5) |> ignore)
+            .WithSimpleSchedule(fun sched -> sched.RepeatForever().WithIntervalInMinutes(60) |> ignore)
         |> ignore)
     |> ignore
 
