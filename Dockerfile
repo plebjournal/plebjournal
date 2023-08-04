@@ -7,7 +7,6 @@ COPY PlebJournal.Domain/. ./PlebJournal.Domain/
 COPY PlebJournal.Identity/. ./PlebJournal.Identity/
 COPY PlebJournal.Domain.Tests/. ./PlebJournal.Domain.Tests/
 COPY PlebJournal.Web/. ./PlebJournal.Web/
-COPY PlebJournal.Db/. ./PlebJournal.Db/
 
 RUN dotnet build
 RUN dotnet test
