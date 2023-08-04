@@ -18,7 +18,7 @@ open FsToolkit.ErrorHandling
 open Stacker.Web.Models
 open Stacker.Web.Views
 open Stacker.Web.Views.Pages
-open Repository.PostgresDb
+open Repository
 
 module Pages =
     let index: HttpHandler = Index.indexPage |> Layout.withLayout |> htmlView
@@ -62,7 +62,7 @@ module Partials =
             let db = ctx.GetService<PlebJournalDb>()
             let users = ctx.GetService<UserManager<PlebUser>>()
             task {
-                let! tx = UserTransactions.Read.getTxById db userId txId
+                let! tx = Transactions.Read.getTxById db userId txId
                 let! price = CurrentPrice.Read.getCurrentPrice db CAD
                 
                 return!
@@ -77,7 +77,7 @@ module Partials =
         fun next ctx ->
             let db = ctx.GetService<PlebJournalDb>()
             task {
-                let! tx = UserTransactions.Read.getTxById db userId txId
+                let! tx = Transactions.Read.getTxById db userId txId
                 
                 let resp =
                     match tx with
@@ -91,7 +91,7 @@ module Partials =
         fun next ctx ->
             let db = ctx.GetService<PlebJournalDb>()
             task {
-                let! t = UserTransactions.Read.getTxById db userId txId
+                let! t = Transactions.Read.getTxById db userId txId
                 
                 let resp =
                     match t with
@@ -118,8 +118,8 @@ module Partials =
                 
             let fetchTxs (db: PlebJournalDb) (userId: Guid) (horizon: DateTime option) =
                 match horizon with
-                | Some d -> UserTransactions.Read.getTxsForUserInHorizon db userId d
-                | None -> UserTransactions.Read.getAllTxsForUser db userId
+                | Some d -> Transactions.Read.getTxsForUserInHorizon db userId d
+                | None -> Transactions.Read.getAllTxsForUser db userId
             
             task {
                 let horizon =
@@ -143,7 +143,7 @@ module Partials =
             let db = ctx.GetService<PlebJournalDb>()
             task {
                 let! cadPrice = CurrentPrice.Read.getCurrentPrice db CAD
-                let! txs = UserTransactions.Read.getAllTxsForUser db userId
+                let! txs = Transactions.Read.getAllTxsForUser db userId
                 let sixMonthsAgo = DateTime.Now.AddMonths(-6).Date;
                 let txsUntil6MonthsAgo =
                     txs
@@ -172,7 +172,7 @@ module Partials =
             task {
                 let! cadPrice = CurrentPrice.Read.getCurrentPrice db CAD
                 let! oneWeekAgo = Prices.Read.getPriceAtDate db CAD ``7 days ago``
-                let! txs = UserTransactions.Read.getAllTxsForUser db userId
+                let! txs = Transactions.Read.getAllTxsForUser db userId
                 let res = txs |> Calculate.foldTxs |> (fun btc -> { Total = btc })
                 
                 let totalValueLastWeek = res.Total * oneWeekAgo
@@ -314,7 +314,7 @@ module Form =
                             | Ok tx -> []
                             | Error errorValue -> errorValue)
                 
-                do! UserTransactions.Insert.insertMany db txs userId
+                do! Transactions.Insert.insertMany db txs userId
                 let withTriggers = withHxTriggerManyAfterSettle [
                     "tx-created", ""
                     "showMessage", $"Imported {txs.Length} transactions"
@@ -363,7 +363,7 @@ module Form =
                 match validated with
                 | Ok tx ->
                     let domain = toDomain tx
-                    do! UserTransactions.Insert.insertTx db domain userId
+                    do! Transactions.Insert.insertTx db domain userId
                     let withTriggers = withHxTriggerManyAfterSettle [
                         "tx-created", ""
                         "showMessage", Alerts.alert domain
@@ -415,7 +415,7 @@ module Form =
         fun next ctx ->
             let db = ctx.GetService<PlebJournalDb>()
             task {
-                do! UserTransactions.Delete.deleteTxForUser db txId userId
+                do! Transactions.Delete.deleteTxForUser db txId userId
                 let trigger = withHxTrigger "tx-deleted"
                 return!
                     (trigger >=> Successful.OK ()) next ctx
@@ -462,11 +462,11 @@ module Form =
                 let validated = Validation.validateEditedTransaction update
                 match validated with
                 | Error e ->
-                    let! t = UserTransactions.Read.getTxById db userId txId
+                    let! t = Transactions.Read.getTxById db userId txId
                     return! (htmlView (Views.Partials.Forms.editTxForm t.Value e)) next ctx
                 | Ok tx ->
                     let domain = toDomain tx
-                    let! changed = UserTransactions.Update.updateTx db domain userId
+                    let! changed = Transactions.Update.updateTx db domain userId
                     let res =
                         match changed with
                         | None -> RequestErrors.NOT_FOUND "TX Not found" next ctx
@@ -485,7 +485,7 @@ module Api =
         fun next ctx ->
             let db = ctx.GetService<PlebJournalDb>()
             task {
-                let! txs = UserTransactions.Read.getAllTxsForUser db userId
+                let! txs = Transactions.Read.getAllTxsForUser db userId
 
                 let model =
                     txs
@@ -533,7 +533,7 @@ module Api =
                     |> Seq.map (fun wma -> {| x = wma.Date; y = wma.MA |})
                     |> Seq.toArray
                 
-                let! txs = UserTransactions.Read.getAllTxsForUser db userId
+                let! txs = Transactions.Read.getAllTxsForUser db userId
                 let purchases =
                     txs
                     |> Array.filter (fun tx -> tx.PricePerCoin.IsSome)
@@ -552,7 +552,7 @@ module Api =
         fun next ctx ->
             let db = ctx.GetService<PlebJournalDb>()
             task {
-                let! txs = UserTransactions.Read.getAllTxsForUser db userId
+                let! txs = Transactions.Read.getAllTxsForUser db userId
                 let! prices = Prices.Read.getPrices db CAD
                 let res = Calculate.portfolioHistoricalValue txs prices
 
@@ -589,7 +589,7 @@ module Api =
                 
             task {
                 
-                let! txs = UserTransactions.Read.getAllTxsForUser db userId
+                let! txs = Transactions.Read.getAllTxsForUser db userId
                 let! pricesUsd = Prices.Read.getPrices db CAD
                 
                 let fiatValue =
@@ -680,7 +680,7 @@ module Api =
                     |> dateHorizon
                     |> Option.defaultValue (DateTime(2000, 01, 01))
                 
-                let! txs = UserTransactions.Read.getAllTxsForUser db userId
+                let! txs = Transactions.Read.getAllTxsForUser db userId
                 let! prices =
                     Prices.Read.getPrices db CAD
                     

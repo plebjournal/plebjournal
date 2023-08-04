@@ -5,7 +5,7 @@ open PlebJournal.Db
 open Quartz
 open Stacker.Web.CoinGecko
 open Stacker.Domain
-open Stacker.Web.Repository.PostgresDb.CurrentPrice.Update
+open Stacker.Web.Repository.CurrentPrice.Update
 
 type CurrentPrice(loggerFactory: ILoggerFactory,
                   db: PlebJournalDb) =

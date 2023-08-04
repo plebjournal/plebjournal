@@ -6,7 +6,7 @@ open Quartz
 open Stacker.ExtendedTypes
 open Stacker.Domain
 open Stacker.Web
-open Stacker.Web.Repository.PostgresDb.Prices
+open Stacker.Web.Repository.Prices
 
 let updateHistorical (db: PlebJournalDb) (logger: ILogger) (currency: Fiat) =
     task {

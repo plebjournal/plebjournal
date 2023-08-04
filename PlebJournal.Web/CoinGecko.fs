@@ -3,7 +3,7 @@ module Stacker.Web.CoinGecko
 open System
 open System.Net
 open Stacker.Domain
-open Repository.PostgresDb.Prices
+open Repository.Prices
 open System.Net.Http
 open FsHttp
 

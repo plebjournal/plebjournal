@@ -10,19 +10,6 @@
         <Compile Include="Json.fs" />
         <None Include="Scripts\InvestigateMA.fsx" />
         <None Include="Scripts\SetupData.fsx" />
-        <EmbeddedResource Include="Db\Migrations\01_IdentitySchema.sql">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </EmbeddedResource>
-        <EmbeddedResource Include="Db\Migrations\02_Transactions.sql">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </EmbeddedResource>
-        <EmbeddedResource Include="Db\Migrations\03_Prices.sql">
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </EmbeddedResource>
-        <EmbeddedResource Include="Db\Migrations\04_CurrentPrice.sql">
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </EmbeddedResource>
-        <Compile Include="Db\Postgres.fs" />
         <Compile Include="Repository.fs" />
         <Compile Include="CoinGecko.fs" />
         <Compile Include="Migrations\*.fs" />
