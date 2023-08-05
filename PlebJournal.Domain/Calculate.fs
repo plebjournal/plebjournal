@@ -227,3 +227,13 @@ module Calculate =
     let percentChange (currentPrice: decimal) (tx: Transaction) =
         tx.PricePerCoin
         |> Option.bind (fun (purchasePrice, _) -> numericalChange purchasePrice currentPrice)
+        
+    type NgU = decimal
+    
+    let ngu (currentPrice: decimal) (tx: Transaction) =
+        let ppc = tx.PricePerCoin
+        ppc |> Option.bind (fun (price, _) ->
+            if price = 0.0m || currentPrice = 0.0m then None else
+                currentPrice / price |> oneDecimal |> Some
+            )
+        

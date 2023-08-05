@@ -124,10 +124,11 @@ module Domain =
         member this.PricePerCoin =
             let btcAmount = this.Amount
             let fiat = this.Fiat
+            
+            if btcAmount = 0.0m<btc> then None else
 
             match fiat with
             | Some a ->
-                let fiatAmount = a.Amount
-                let perCoin = fiatAmount / btcAmount |> decimal
+                let perCoin = a.Amount / btcAmount |> decimal
                 (perCoin, a.Currency) |> Some
             | None -> None

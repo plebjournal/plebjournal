@@ -7,7 +7,7 @@ open Giraffe.ViewEngine
 open Giraffe.ViewEngine.Htmx
 open Stacker.Web.Models
 
-let historyTable (txs: (Change option * Transaction) list) (selectedHorizon: TxHistoryHorizon option) =
+let historyTable (txs: TxHistoryViewModel list) (selectedHorizon: TxHistoryHorizon option) =
     let changeColumn (change: Change option) =
         match change with
         | None -> div [] []
@@ -15,6 +15,14 @@ let historyTable (txs: (Change option * Transaction) list) (selectedHorizon: TxH
             div [ _style "color: green;" ] [ str $"{percent}%%" ]
         | Some (Decrease percent) ->
             div [] [ str $"{percent}%%" ]
+            
+    let nguColumn (ngu: NgU option) =
+        match ngu with
+        | None -> div [] []
+        | Some d when d >= 1.0m ->
+            div [ _style "color: green;" ] [ str $"{d}x" ]
+        | Some d ->
+            div [ _style "color: red;" ] [ str $"{d}x" ]
     
     div
         [ _class "card"; _id "stacking-history" ]
@@ -50,8 +58,8 @@ let historyTable (txs: (Change option * Transaction) list) (selectedHorizon: TxH
                             th [] [ str "Type" ]
                             th [] [ str "Amount" ]                                         
                             th [] [ str "Fiat" ]
-                            th [] [ str "Fiat Rate" ]
                             th [] [ str "% change" ]
+                            th [] [ str "NgU" ]
                             th [] [ str "Date" ]
                             th [] []
                         ]
@@ -59,7 +67,7 @@ let historyTable (txs: (Change option * Transaction) list) (selectedHorizon: TxH
                     tbody
                         []
                         (txs
-                         |> List.map (fun (change, tx) ->
+                         |> List.map (fun {Transaction = tx; PercentChange = change; Ngu = ngu} ->
                              tr
                                  []
                                  [                                           
@@ -82,17 +90,9 @@ let historyTable (txs: (Change option * Transaction) list) (selectedHorizon: TxH
                                    ]
 
                                    td [] [ str $"{fiatAmount tx.Fiat} {fiatCurrent tx.Fiat}" ]
-                                   let pricePerCoin =
-                                       tx.PricePerCoin
-                                       |> Option.map (fun (d, fiat) ->
-                                           d
-                                           |> fun d -> d.ToString("C2", CultureInfo.CreateSpecificCulture("en-US"))
-                                           |> fun str -> $"{str} - {fiat.ToString()}")
-                                       
-                                       |> Option.defaultValue ""
-                                   td [] [ str $"{pricePerCoin}" ]
-                                   td [ ] [ changeColumn change ]
-                                   td [] [ str $"{tx.DateTime.ToShortDateString()}" ]
+                                   td [] [ changeColumn change ]
+                                   td [] [ nguColumn ngu ]
+                                   td [] [ str (tx.DateTime.ToString("YYYY-MM-DD")) ]
                                    td [] [
                                        div [ _class "nav-item dropdown" ] [
                                             a [ _class "nav-link"; _href "#"; _data "bs-toggle" "dropdown" ] [

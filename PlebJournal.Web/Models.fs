@@ -1,6 +1,7 @@
 module Stacker.Web.Models
 
 open System
+open Stacker.Calculate
 open Stacker.Domain
 open Stacker.GenerateSeries
 open Microsoft.AspNetCore.Http
@@ -67,6 +68,11 @@ type DcaCalculation =
       Cadence: Cadence
       Duration: int
       DurationUnit: Duration }
+    
+type TxHistoryViewModel =
+    { Transaction: Transaction
+      PercentChange: Change option
+      Ngu: NgU option }
     
 type TxHistoryHorizon =
     | TwoMonths

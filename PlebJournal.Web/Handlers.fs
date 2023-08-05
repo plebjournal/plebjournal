@@ -129,13 +129,16 @@ module Partials =
                 
                 let! txs = fetchTxs db userId (dateHorizon horizon)
                 let! currentPrice = CurrentPrice.Read.getCurrentPrice db CAD
-                
-                let withPercentChange =
+                    
+                let txHistoryModel =
                     txs
-                    |> Array.map (fun tx -> Calculate.percentChange currentPrice tx, tx)
+                    |> Array.map (fun tx ->
+                        { Transaction = tx
+                          PercentChange = Calculate.percentChange currentPrice tx
+                          Ngu = Calculate.ngu currentPrice tx })
                     |> Array.toList
                     
-                return! htmlView (Partials.TxHistory.historyTable withPercentChange horizon) next ctx
+                return! htmlView (Partials.TxHistory.historyTable txHistoryModel horizon) next ctx
             }
 
     let balance (userId: Guid): HttpHandler =
