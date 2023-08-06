@@ -25,6 +25,9 @@ module Pages =
 
     let transactions: HttpHandler =
         Transactions.transactionsPage |> Layout.withLayout |> htmlView
+        
+    let blockChainInfo: HttpHandler =
+        BlockchainInfo.blockchainInfoPage |> Layout.withLayout |> htmlView
 
     let indicators: HttpHandler =
         Indicators.indicatorsPage |> Layout.withLayout |> htmlView
@@ -140,6 +143,11 @@ module Partials =
                     
                 return! htmlView (Partials.TxHistory.historyTable txHistoryModel horizon) next ctx
             }
+    let epochs : HttpHandler =
+        fun next ctx -> task {
+            let! currentBlockHeight = Mempool_Space.getBlockchainTip ()
+            return! htmlView (Partials.Epochs.epochChart currentBlockHeight) next ctx
+        }
 
     let balance (userId: Guid): HttpHandler =
         fun next ctx ->

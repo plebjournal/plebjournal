@@ -12,6 +12,7 @@
         <Compile Include="Calculate.Test.fs" />
         <Compile Include="Generate.Test.fs" />
         <Compile Include="Supply.fs" />
+        <Compile Include="Epochs.Test.fs" />
         <Compile Include="Models.Test.fs" />
         <Compile Include="Program.fs" />
     </ItemGroup>

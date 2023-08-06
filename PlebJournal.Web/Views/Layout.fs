@@ -79,6 +79,11 @@ let private navbar =
                                   li
                                       [ _class "nav-item" ]
                                       [ a
+                                            [ _class "nav-link"; _href "/blockchaininfo" ]
+                                            [ span [ _class "nav-link-title" ] [ str "Blockchain Info" ] ] ]                                  
+                                  li
+                                      [ _class "nav-item" ]
+                                      [ a
                                             [ _class "nav-link"; _href "/dca-calculator" ]
                                             [ span [ _class "nav-link-title" ] [ str "DCA Calculator" ] ] ]
                                   li

@@ -58,7 +58,6 @@ let historyTable (txs: TxHistoryViewModel list) (selectedHorizon: TxHistoryHoriz
                             th [] [ str "Type" ]
                             th [] [ str "Amount" ]                                         
                             th [] [ str "Fiat" ]
-                            th [] [ str "% change" ]
                             th [] [ str "NgU" ]
                             th [] [ str "Date" ]
                             th [] []
@@ -90,9 +89,8 @@ let historyTable (txs: TxHistoryViewModel list) (selectedHorizon: TxHistoryHoriz
                                    ]
 
                                    td [] [ str $"{fiatAmount tx.Fiat} {fiatCurrent tx.Fiat}" ]
-                                   td [] [ changeColumn change ]
                                    td [] [ nguColumn ngu ]
-                                   td [] [ str (tx.DateTime.ToString("YYYY-MM-DD")) ]
+                                   td [] [ str (tx.DateTime.ToString("yyyy-MM-dd")) ]
                                    td [] [
                                        div [ _class "nav-item dropdown" ] [
                                             a [ _class "nav-link"; _href "#"; _data "bs-toggle" "dropdown" ] [
