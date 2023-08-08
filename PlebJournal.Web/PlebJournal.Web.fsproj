@@ -45,7 +45,6 @@
     <ItemGroup>
       <ProjectReference Include="..\PlebJournal.Db\PlebJournal.Db.csproj" />
       <ProjectReference Include="..\PlebJournal.Domain\PlebJournal.Domain.fsproj" />
-      <ProjectReference Include="..\PlebJournal.Identity\PlebJournal.Identity.csproj" />
     </ItemGroup>
 
     <ItemGroup>
