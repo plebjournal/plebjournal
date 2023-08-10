@@ -138,7 +138,7 @@ module Partials =
                     |> Array.map (fun tx ->
                         { Transaction = tx
                           PercentChange = Calculate.percentChange currentPrice tx
-                          Ngu = Calculate.ngu currentPrice tx })
+                          Ngu = Calculate.txNgu currentPrice tx })
                     |> Array.toList
                     
                 return! htmlView (Partials.TxHistory.historyTable txHistoryModel horizon) next ctx
@@ -179,17 +179,20 @@ module Partials =
     let fiatValue (userId: Guid) : HttpHandler =
         fun next ctx ->
             let db = ctx.GetService<PlebJournalDb>()
-            let ``7 days ago`` = DateTime.UtcNow.Subtract(TimeSpan.FromDays(7)).Date
             task {
                 let! cadPrice = CurrentPrice.Read.getCurrentPrice db CAD
-                let! oneWeekAgo = Prices.Read.getPriceAtDate db CAD ``7 days ago``
                 let! txs = Transactions.Read.getAllTxsForUser db userId
                 let res = txs |> Calculate.foldTxs |> (fun btc -> { Total = btc })
                 
-                let totalValueLastWeek = res.Total * oneWeekAgo
                 let totalValueToday = res.Total * cadPrice
-                let change = Calculate.numericalChange (decimal totalValueLastWeek) (decimal totalValueToday)
-                return! htmlView (Partials.Widgets.fiatValue res (Some totalValueToday) change) next ctx
+                let costBasis = Calculate.fiatCostBasis txs
+                let vm = {
+                    CostBasis = costBasis
+                    Balance = res
+                    CurrentValue = totalValueToday
+                    Ngu = Calculate.ngu (decimal totalValueToday) costBasis
+                }
+                return! htmlView (Partials.Widgets.fiatValue vm) next ctx
             }
             
     let btcPrice : HttpHandler =

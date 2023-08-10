@@ -74,6 +74,12 @@ type TxHistoryViewModel =
       PercentChange: Change option
       Ngu: NgU option }
     
+type FiatBalanceViewModel =
+    { Balance: Balance
+      CurrentValue: decimal<btc>
+      CostBasis: decimal
+      Ngu: NgU option }
+    
 type TxHistoryHorizon =
     | TwoMonths
     | TwelveMonths

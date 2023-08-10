@@ -38,38 +38,36 @@ let btcBalance balance (cadValue: decimal<btc> option) change =
                     ]
                 | None -> div [] [] ] ]
 
-let fiatValue balance (cadValue: decimal<btc> option) change =
+let fiatValue (fiatBalance: FiatBalanceViewModel) =
     let percentChangeSpan (change) =
         match change with
         | None -> span [] []
-        | Some (Increase percent) ->
-            span [ _class "text-green d-inline-flex lh-1"; _title "7D" ] [ str $"+{percent}%%" ]
-        | Some (Decrease percent) ->
-            span [ _class "text-red d-inline-flex lh-1"; _title "7D" ] [ str $"-{percent}%%" ]
+        | Some ngu when ngu >= 0.0m ->
+            span [ _class "text-green d-inline-flex lh-1"; _title "NgU" ] [ str $"+{ngu}x" ]
+        | Some ngu ->
+            span [ _class "text-red d-inline-flex lh-1"; _title "NgU" ] [ str $"-{ngu}x" ]
     
     div
         [ _class "card" ]
         [ div
               [ _class "card-body" ]
               [ div [ _class "subheader" ] [ str "Fiat Value" ]
-                match cadValue with
-                | Some v ->
-                    let value = v |> decimal
+                
+                let value = fiatBalance.CurrentValue |> decimal
 
-                    div [ _class "d-flex align-items-baseline" ] [
-                        div [ _class "h1 mb-3 me-3" ] [
-                            let culture = CultureInfo.CreateSpecificCulture("en-US")
-                            let valueStr = value.ToString("C2", culture)
-                            str $"{valueStr} CAD"
-                        ]
-                        div [ _class "me-auto" ] [
-                            percentChangeSpan change
-                        ]
+                div [ _class "d-flex align-items-baseline" ] [
+                    div [ _class "h1 mb-3 me-3" ] [
+                        let culture = CultureInfo.CreateSpecificCulture("en-US")
+                        let valueStr = value.ToString("C2", culture)
+                        str $"{valueStr} CAD"
                     ]
+                    div [ _class "me-auto" ] [
+                        percentChangeSpan fiatBalance.Ngu
+                    ]
+                ]
 
-                | None -> div [] []
                 div [ _class "subheader" ] [
-                    let balanceStr = balance.Total |> decimal |> fun d -> d.ToString("F8")
+                    let balanceStr = fiatBalance.Balance.Total |> decimal |> fun d -> d.ToString("F8")
                     str $"{balanceStr} BTC"
                 ]
             ]

@@ -30,6 +30,17 @@ module Calculate =
                 | Buy b -> s + b.Amount.AsBtc
                 | Sell sell -> s - sell.Amount.AsBtc)
             0.0m<btc>
+            
+    let fiatCostBasis (txs: Transaction seq) =
+        txs
+        |> Seq.fold
+            (fun s tx ->
+                match tx with
+                | Buy buy -> s + buy.Fiat.Amount
+                | Income _ -> s
+                | Spend _ -> s
+                | Sell sell -> s - sell.Fiat.Amount)
+            0.0m
 
     let foldDailyTransactions (txs: Transaction seq) =
         txs
@@ -196,6 +207,7 @@ module Calculate =
             []
         |> Seq.somes
 
+    // TODO: this doesn't handle sells vs buys
     let movingCostBasis (txs: Transaction seq) =
         txs
         |> Seq.map (fun tx -> tx.DateTime, tx.Fiat)
@@ -230,10 +242,17 @@ module Calculate =
         
     type NgU = decimal
     
-    let ngu (currentPrice: decimal) (tx: Transaction) =
+    let ``x change`` (current: decimal) (previous: decimal) =
+        if previous = 0.0m then None else
+            current / previous |> Some
+            
+    let ngu (current) previous =
+        ``x change`` current previous |> Option.map oneDecimal
+    
+    let txNgu (currentPrice: decimal) (tx: Transaction) =
         let ppc = tx.PricePerCoin
-        ppc |> Option.bind (fun (price, _) ->
-            if price = 0.0m || currentPrice = 0.0m then None else
-                currentPrice / price |> oneDecimal |> Some
-            )
+        ppc
+        |> Option.bind (fun (price, _) -> ``x change`` currentPrice price)
+        |> Option.map oneDecimal
+    
         

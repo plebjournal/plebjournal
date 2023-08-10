@@ -130,23 +130,23 @@ module Ngu =
     [<Fact>]
     let ``should calculate Ngu`` () =
         Buy { Id = Guid.Empty; Date = (DateTime(2023, 01, 01)); Amount = BtcAmount.OfSats(100_000_000L); Fiat = { Amount = 1000m; Currency = USD } }
-        |> ngu 3_000m
+        |> txNgu 3_000m
         |> should equal (Some(3.0m))
         
     [<Fact>]
     let ``should calculate Ngu when goes down`` () =
         Buy { Id = Guid.Empty; Date = DateTime(2023, 01, 01); Amount = BtcAmount.OfSats(100_000_000L); Fiat = { Amount = 1000m; Currency = USD } }
-        |> ngu 900m
+        |> txNgu 900m
         |> should equal (Some(0.90m))
         
     [<Fact>]
     let ``should handle zero value`` () =
         Buy { Id = Guid.Empty; Date = DateTime(2023, 01, 01); Amount = BtcAmount.OfSats(0L); Fiat = { Amount = 1000m; Currency = USD } }
-        |> ngu 900m
+        |> txNgu 900m
         |> should equal None
         
     [<Fact>]
     let ``should handle zero current price (for some reason)`` () =
         Buy { Id = Guid.Empty; Date = DateTime(2023, 01, 01); Amount = BtcAmount.OfSats(100_000_000L); Fiat = { Amount = 1000m; Currency = USD } }
-        |> ngu 0.0m
+        |> txNgu 0.0m
         |> should equal None
