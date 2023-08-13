@@ -4,7 +4,6 @@ WORKDIR /source
 
 COPY PlebJournal.sln .
 COPY PlebJournal.Domain/. ./PlebJournal.Domain/
-COPY PlebJournal.Identity/. ./PlebJournal.Identity/
 COPY PlebJournal.Domain.Tests/. ./PlebJournal.Domain.Tests/
 COPY PlebJournal.Db/. ./PlebJournal.Db/
 COPY PlebJournal.Web/. ./PlebJournal.Web/
