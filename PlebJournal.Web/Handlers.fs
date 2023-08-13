@@ -109,28 +109,10 @@ module Partials =
 
     let history (userId: Guid): HttpHandler =
         fun next ctx ->
-            let db = ctx.GetService<PlebJournalDb>() 
-            let dateHorizon (horizon: TxHistoryHorizon option) =
-                let now = DateTime.UtcNow
-                match horizon with
-                | Some TwoMonths -> now.AddMonths(-2) |> Some
-                | Some TwelveMonths -> now.AddMonths(-12) |> Some
-                | Some TwoYears -> now.AddMonths(-24) |> Some
-                | Some AllData -> None
-                | _ -> None
-                
-            let fetchTxs (db: PlebJournalDb) (userId: Guid) (horizon: DateTime option) =
-                match horizon with
-                | Some d -> Transactions.Read.getTxsForUserInHorizon db userId d
-                | None -> Transactions.Read.getAllTxsForUser db userId
-            
+            let db = ctx.GetService<PlebJournalDb>()             
             task {
-                let horizon =
-                    ctx.TryGetQueryStringValue "horizon"
-                    |> Option.defaultValue "12-months"
-                    |> TxHistoryHorizon.parse
                 
-                let! txs = fetchTxs db userId (dateHorizon horizon)
+                let! txs = Transactions.Read.getAllTxsForUser db userId
                 let! currentPrice = CurrentPrice.Read.getCurrentPrice db CAD
                     
                 let txHistoryModel =
@@ -141,7 +123,7 @@ module Partials =
                           Ngu = Calculate.txNgu currentPrice tx })
                     |> Array.toList
                     
-                return! htmlView (Partials.TxHistory.historyTable txHistoryModel horizon) next ctx
+                return! htmlView (Partials.TxHistory.historyTable txHistoryModel) next ctx
             }
     let epochs : HttpHandler =
         fun next ctx -> task {

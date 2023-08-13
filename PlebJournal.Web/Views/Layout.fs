@@ -15,6 +15,7 @@ let private htmlHead =
           link
               [ _rel "stylesheet"
                 _href "https://cdn.jsdelivr.net/npm/@tabler/icons@latest/iconfont/tabler-icons.min.css" ]
+          link [ _rel "stylesheet"; _href "https://cdn.datatables.net/v/dt/dt-1.13.6/datatables.min.css" ]
           link [ _rel "stylesheet"; _href "/css/style.css" ]
           script
               [ _src "https://unpkg.com/htmx.org@1.8.4"

@@ -3,7 +3,12 @@ module Stacker.Web.Views.Pages.Transactions
 open Giraffe.ViewEngine.Htmx
 open Giraffe.ViewEngine
 
-let transactionsPage = [
+let scripts = [
+    script [ _src "https://cdn.datatables.net/v/bs5/jq-3.7.0/dt-1.13.6/b-2.4.1/datatables.min.js" ] []
+]
+
+let transactionsPage =
+    [
     div [ _class "row mb-4" ] [
         div [ _class "col" ] [
             h2 [ _class "page-title" ] [ str "Stacking History" ]
@@ -35,10 +40,9 @@ let transactionsPage = [
                     str "Import"
                 ]
             ]
-            
         ]
-    ]        
-        
+    ]
+
     div [ _class "row" ] [
         div [ _class "col-sm-12" ] [
             div [
@@ -47,4 +51,5 @@ let transactionsPage = [
             ] []
         ]
     ]
-]
+    
+    ] @ scripts

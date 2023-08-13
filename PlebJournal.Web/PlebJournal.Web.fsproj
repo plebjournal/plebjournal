@@ -49,14 +49,12 @@
 
     <ItemGroup>
       <PackageReference Include="CoinGeckoAsyncApi" Version="1.7.0" />
-      <PackageReference Include="dbup-postgresql" Version="5.0.8" />
       <PackageReference Include="FSharp.Data" Version="5.0.2" />
       <PackageReference Include="FSharp.SystemTextJson" Version="1.0.7" />
       <PackageReference Include="FsHttp" Version="10.0.0" />
       <PackageReference Include="FsToolkit.ErrorHandling" Version="4.2.1" />
       <PackageReference Include="Giraffe.Htmx" Version="1.8.4" />
       <PackageReference Include="Giraffe.ViewEngine.Htmx" Version="1.8.4" />
-      <PackageReference Include="Npgsql.FSharp" Version="5.5.0" />
       <PackageReference Include="Quartz" Version="3.5.0" />
       <PackageReference Include="Quartz.AspNetCore" Version="3.5.0" />
       <PackageReference Include="Saturn" Version="0.16.1" />

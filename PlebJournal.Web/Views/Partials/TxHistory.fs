@@ -7,15 +7,7 @@ open Giraffe.ViewEngine
 open Giraffe.ViewEngine.Htmx
 open Stacker.Web.Models
 
-let historyTable (txs: TxHistoryViewModel list) (selectedHorizon: TxHistoryHorizon option) =
-    let changeColumn (change: Change option) =
-        match change with
-        | None -> div [] []
-        | Some (Increase percent) ->
-            div [ _style "color: green;" ] [ str $"{percent}%%" ]
-        | Some (Decrease percent) ->
-            div [] [ str $"{percent}%%" ]
-            
+let historyTable (txs: TxHistoryViewModel list) =            
     let nguColumn (ngu: NgU option) =
         match ngu with
         | None -> div [] []
@@ -26,33 +18,9 @@ let historyTable (txs: TxHistoryViewModel list) (selectedHorizon: TxHistoryHoriz
     
     div
         [ _class "card"; _id "stacking-history" ]
-        [ div [ _class "card-body border-bottom py-3" ] [
-            div [ _class "row" ] [
-                div [ _class "col text-muted" ] [
-                    h3 [] [
-                        str "Transactions"
-                    ]
-                ]
-                div [ _class "col-auto ms-auto text-muted" ] [
-                    select [
-                        _name "horizon"
-                        _type "button"
-                        _class "form-select"
-                        _hxGet "/history"
-                        _hxTarget "#stacking-history"
-                        _hxTrigger "change"
-                    ] [
-                        div [ _class "htmx-indicator" ] [ div [_class "spinner-border text-blue"] [] ]
-                        option ([ _value "2-months" ] @ [ if selectedHorizon = Some TwoMonths then _selected ]) [ str "2 Months" ]
-                        option ([ _value "12-months" ] @ [ if selectedHorizon = None || selectedHorizon = Some TwelveMonths then _selected ]) [str "12 Months"]
-                        option ([ _value "24-months" ] @ [ if selectedHorizon = Some TwoYears then _selected ]) [ str "24 Months" ]
-                        option ([ _value "all-data" ] @ [ if selectedHorizon = Some AllData then _selected ]) [ str "All Data" ]
-                    ]
-                ]
-            ]
-          ]
-          div [ _class "table-responsive" ] [
-                table [ _class "table card-table table-vcenter datatable" ] [
+        [ 
+          div [ _class "card-body" ] [
+                table [ _id "tx-table"; _class "table table-vcenter" ] [
                     thead [] [
                         tr [] [ 
                             th [] [ str "Type" ]
@@ -121,4 +89,6 @@ let historyTable (txs: TxHistoryViewModel list) (selectedHorizon: TxHistoryHoriz
                                             ]
                                         ]
                                    ]
-                                    ])) ] ] ]
+                                    ])) ] ]
+          script [ _src "/js/tx-history-datatable.js" ] []]
+          
