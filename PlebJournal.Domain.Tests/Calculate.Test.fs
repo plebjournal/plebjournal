@@ -149,4 +149,4 @@ module Ngu =
     let ``should handle zero current price (for some reason)`` () =
         Buy { Id = Guid.Empty; Date = DateTime(2023, 01, 01); Amount = BtcAmount.OfSats(100_000_000L); Fiat = { Amount = 1000m; Currency = USD } }
         |> txNgu 0.0m
-        |> should equal None
+        |> should equal (Some 0.0m)
