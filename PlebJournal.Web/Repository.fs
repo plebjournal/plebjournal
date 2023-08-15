@@ -227,6 +227,15 @@ module Prices =
 
                 return prices |> Array.map (fun p -> { Price = p.BtcPrice; Date = p.Date })
             }
+        
+        let getPricesUntilDate (db: PlebJournalDb) (currency: Fiat) (date: DateTime) =
+            task {
+                return!
+                    db.Prices
+                        .Where(fun p -> p.Currency = currency.ToString() && p.Date >= date)
+                        .OrderBy(fun p -> p.Date)
+                        .ToArrayAsync()
+            }
 
         let getPriceAtDate (db: PlebJournalDb) (currency: Fiat) (date: DateTime) =
             task {

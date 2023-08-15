@@ -6,13 +6,12 @@ open Stacker.Domain
 open Giraffe.ViewEngine
 open Stacker.Web.Models
 
-let btcBalance balance (cadValue: decimal<btc> option) change =
+let btcBalance balance (change: Change option) =
     let percentChangeSpan (change) =
         match change with
-        | None -> span [] []
-        | Some (Increase percent) ->
+        | Increase percent ->
             span [ _class "text-green d-inline-flex lh-1"; _title "6 Mo" ] [ str $"+{percent}%%" ]
-        | Some (Decrease percent) ->
+        | Decrease percent ->
             span [ _class "text-red d-inline-flex lh-1"; _title "6 Mo" ] [ str $"-{percent}%%" ]
 
     div
@@ -20,26 +19,22 @@ let btcBalance balance (cadValue: decimal<btc> option) change =
         [ div
               [ _class "card-body" ]
               [ div [ _class "d-flex align-items-center" ]
-                    [ div [ _class "subheader" ] [ str "BTC Balance" ]
+                    [ div [ _class "subheader" ] [ str "Balance" ]
                        ]
                 div [ _class "d-flex align-items-baseline" ] [
                     let balanceStr = balance.Total |> decimal |> fun d -> d.ToString("F8")
-                    div [ _class "h1 mb-3 me-2" ] [ str $"{balanceStr} BTC" ]
-                    div [ _class "me-auto" ] [
-                        percentChangeSpan change
-                    ]
+                    h1 [ _class "h1 mb-3 me-2" ] [ str $"{balanceStr} BTC" ]
                 ]
-                match cadValue with
-                | Some v ->
-                    let culture = CultureInfo.CreateSpecificCulture("en-US")
-                    let value = v |> decimal |> (fun d -> d.ToString("C2", culture))
-                    div [ _class "subheader" ] [
-                        str $"${value} CAD"
+                match change with
+                | Some v ->                   
+                    div [ _class "mb-2" ] [
+                        str "Change in last 6 months: "
+                        percentChangeSpan v
                     ]
                 | None -> div [] [] ] ]
 
 let fiatValue (fiatBalance: FiatBalanceViewModel) =
-    let percentChangeSpan (change) =
+    let nguSpan change =
         match change with
         | None -> span [] []
         | Some ngu when ngu >= 0.0m ->
@@ -61,19 +56,15 @@ let fiatValue (fiatBalance: FiatBalanceViewModel) =
                         let valueStr = value.ToString("C2", culture)
                         str $"{valueStr} CAD"
                     ]
-                    div [ _class "me-auto" ] [
-                        percentChangeSpan fiatBalance.Ngu
-                    ]
                 ]
 
-                div [ _class "subheader" ] [
-                    let balanceStr = fiatBalance.Balance.Total |> decimal |> fun d -> d.ToString("F8")
-                    str $"{balanceStr} BTC"
+                div [ _class "mb-2" ] [
+                    str "NgU: "; nguSpan fiatBalance.Ngu
                 ]
             ]
         ]
 
-let btcPrice (cad: decimal, usd: decimal) =
+let btcPrice (cad: decimal) =
     let culture = CultureInfo.CreateSpecificCulture("en-US")
 
     div [ _class "card" ] [
@@ -82,14 +73,12 @@ let btcPrice (cad: decimal, usd: decimal) =
                 str "Btc Price"
             ]
             div [ _class "d-flex align-items-baseline" ] [
-                div [ _class "h1 mb-3 me-3" ] [
+                div [ _class "h1 mb-1" ] [
                     let valueStr = cad.ToString("C2", culture)
                     str $"{valueStr} CAD"
                 ]
             ]
-            div [ _class "subheader" ] [
-                    let valueStr = usd.ToString("C2", culture)
-                    str $"{valueStr} USD"
-            ]
+            div [ _id "btc-price-card-sparkline" ] [ ]
         ]
+        script [ _src "/js/btc-price-sparkline.js" ] []
     ]

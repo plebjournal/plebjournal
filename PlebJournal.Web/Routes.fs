@@ -71,6 +71,7 @@ let secureRoutes = withAuth >=> router {
     get "/api/workbench-config" Handlers.Api.workbenchConfig
     get "/api/fiat-value-chart-config" (withUserId Handlers.Api.fiatValueChartConfig)
     get "/api/dca-calculator" (withUserId Handlers.Api.dcaCalculatorChartConfig)
+    get "/api/btc-price-chart" Handlers.Api.btcPriceChart
 }
 
 let publicRoutes = router {

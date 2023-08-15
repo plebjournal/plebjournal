@@ -156,7 +156,7 @@ module Partials =
                                  (decimal totalStackToday.Total)
                                                      
                 return!
-                    htmlView (Partials.Widgets.btcBalance totalStackToday (Some value) change) next ctx
+                    htmlView (Partials.Widgets.btcBalance totalStackToday change) next ctx
             }
     let fiatValue (userId: Guid) : HttpHandler =
         fun next ctx ->
@@ -182,9 +182,8 @@ module Partials =
             let db = ctx.GetService<PlebJournalDb>()
             task {
                 let! cadPrice = CurrentPrice.Read.getCurrentPrice db CAD
-                let! usdPrice = CurrentPrice.Read.getCurrentPrice db USD
                 
-                return! htmlView (Partials.Widgets.btcPrice (cadPrice, usdPrice)) next ctx
+                return! htmlView (Partials.Widgets.btcPrice cadPrice) next ctx
             }
     
     let chart: HttpHandler =
@@ -745,5 +744,24 @@ module Api =
                 |}
                                 
                 let config = {| traces = [ box fiatTrace'; btcStackTrace'; costBasis ] |}
+                return! json config next ctx
+            }
+            
+    let btcPriceChart : HttpHandler =
+        fun next ctx ->
+            let db = ctx.GetService<PlebJournalDb>()
+            task {
+                let! prices = Prices.Read.getPricesUntilDate db USD (DateTime.UtcNow.AddMonths(-6))
+                
+                let trace = {|
+                    mode = "lines"
+                    x = prices |> Array.map (fun p -> p.Date)
+                    y = prices |> Array.map (fun p -> p.BtcPrice)
+                |}
+                
+                let config = {|
+                    traces = [ trace ]
+                |}
+                
                 return! json config next ctx
             }

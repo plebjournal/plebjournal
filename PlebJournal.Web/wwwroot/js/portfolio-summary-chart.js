@@ -6,8 +6,6 @@ const loadPortfolioSummary = async (horizon) => {
     font: {
       family: 'monospace'
     },
-    //height: 600,
-    //showLegend: true,
     yaxis: {
       title: "Fiat Value",
       side: "left",
