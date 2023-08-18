@@ -598,6 +598,12 @@ module Api =
                     |> Calculate.movingSumOfTxs
                     |> Calculate.fillDatesWhichHaveNoTx
                     |> Array.where (fun (d, _) -> d >= horizon)
+                    
+                let costBasis =
+                    txs
+                    |> Calculate.movingCostBasis
+                    |> Seq.sortBy fst
+                    |> Calculate.fillDatesWhichHaveNoTx
                 
                 let fiatTrace = Map<string, obj> [
                     "name", "Fiat Value"
@@ -607,14 +613,21 @@ module Api =
                 ]
                 
                 let btcStackTrace = Map<string, obj> [
-                    "name", "Btc Value"
+                    "name", "Btc Stack"
                     "mode", "lines"
-                    "x", btcStack |> Array.map fst |> Array.toList :> obj
-                    "y", btcStack |> Array.map snd |> Array.toList :> obj
+                    "x", btcStack |> Array.map fst :> obj
+                    "y", btcStack |> Array.map snd :> obj
                     "yaxis", "y2"
                 ]
                 
-                let config = {| traces = [fiatTrace; btcStackTrace] |}
+                let costBasis = Map<String, obj> [
+                    "name", "Cost Basis"
+                    "mode", "lines"
+                    "x", costBasis |> Seq.map fst :> obj
+                    "y", costBasis |> Seq.map snd :> obj
+                ]
+                
+                let config = {| traces = [fiatTrace; btcStackTrace; costBasis] |}
                 
                 return! json config next ctx
             }

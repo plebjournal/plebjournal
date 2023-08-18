@@ -21,7 +21,7 @@ const loadDcaCalculator = async () => {
       title: "Cost Basis",
       side: "right",
       overlaying: 'y'
-    },    
+    }, 
     xaxis: {
       type: 'date',
     },

@@ -16,6 +16,11 @@ const loadPortfolioSummary = async (horizon) => {
       side: "right",
       overlaying: 'y'
     },
+    yaxis3: {
+      title: "Cost Basis",
+      side: "right",
+      overlaying: 'y'
+    },
     xaxis: {
       type: 'date',
     },

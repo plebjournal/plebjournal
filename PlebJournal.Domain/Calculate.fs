@@ -65,14 +65,14 @@ module Calculate =
             []
         |> Seq.sortBy fst
         
-    let fillDatesWhichHaveNoTx (txs: (DateTime * decimal<btc>) seq) =
+    let fillDatesWhichHaveNoTx (txs) =
         let daysBetween (d:DateTime) (d2: DateTime) =
             d2.Subtract(d).Days - 1
             
         let genDates (startDate: DateTime) (days: int) =
             [| for i in 1 .. days do startDate.AddDays(i) |]
             
-        let generateBetween (firstTx: DateTime * decimal<btc>) (laterDate: DateTime * decimal<btc>) =
+        let generateBetween (firstTx: DateTime * 'a) (laterDate: DateTime * 'a) =
             let earlier, btcAmount = firstTx
             let later, txs = laterDate                                      
             let between = daysBetween earlier later                      
@@ -206,22 +206,26 @@ module Calculate =
                 | _ -> wma :: s)
             []
         |> Seq.somes
-
-    // TODO: this doesn't handle sells vs buys
+    
     let movingCostBasis (txs: Transaction seq) =
+        let fiat t =
+            match t with
+            | Buy buy -> buy.Fiat.Amount
+            | Sell sell -> sell.Fiat.Amount * -1.0m
+            | _ -> 0.0m
+        
         txs
-        |> Seq.map (fun tx -> tx.DateTime, tx.Fiat)
-        |> Seq.filter (fun (d, fiat) -> fiat.IsSome)
+        |> Seq.sortBy (fun t -> t.DateTime)
         |> Seq.fold
-            (fun s (d, el) ->
+            (fun s t ->
                 match s with
-                | [] -> [ d, el.Value.Amount ]
+                | [] -> [ t.DateTime, fiat t ]
                 | lst ->
-                    let _, headValue = s.Head
-                    let next = d, headValue + el.Value.Amount
-                    next :: lst)
-            []
-
+                    let _, value = s.Head
+                    let next = t.DateTime, value + fiat t 
+                    next :: lst
+            ) []
+    
     type Change =
         | Increase of decimal
         | Decrease of decimal
