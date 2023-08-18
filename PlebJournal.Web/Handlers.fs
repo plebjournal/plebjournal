@@ -604,6 +604,7 @@ module Api =
                     |> Calculate.movingCostBasis
                     |> Seq.sortBy fst
                     |> Calculate.fillDatesWhichHaveNoTx
+                    |> Array.where (fun (d, _) -> d >= horizon)
                 
                 let fiatTrace = Map<string, obj> [
                     "name", "Fiat Value"
