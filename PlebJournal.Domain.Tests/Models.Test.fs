@@ -3,7 +3,7 @@ module Stacker.Tests.Models
 open System
 open Stacker.Domain
 open Stacker.Web.Models
-open Stacker.Web.Models.Validation
+open Stacker.Web.Models.Validation.Transaction
 open Expecto
 open Xunit
 

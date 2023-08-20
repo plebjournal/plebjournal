@@ -30,6 +30,7 @@
         <Compile Include="Views\Pages\Twitter.fs" />
         <Compile Include="Views\Pages\DcaCalculator.fs" />
         <Compile Include="Views\Pages\CreateAccount.fs" />
+        <Compile Include="Views\Pages\Settings.fs" />
         <Compile Include="Views\Partials\Forms.fs" />
         <Compile Include="Views\Partials\Toast.fs" />
         <Compile Include="Views\Partials\User.fs" />

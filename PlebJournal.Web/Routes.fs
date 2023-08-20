@@ -36,6 +36,9 @@ let secureRoutes = withAuth >=> router {
     get "/indicators" Handlers.Pages.indicators
     get "/work-bench" Handlers.Pages.workbench
     get "/dca-calculator" Handlers.Pages.dcaCalculator
+    get "/settings" Handlers.Pages.settings
+    get "/settings/user-settings" (withUserId Handlers.Partials.userSettings)
+    post "/settings/user-settings" (withUserId Handlers.Form.updateSettings)
     get "/bought" Handlers.Partials.boughtBitcoinForm
     getf "/tx/edit/%O" (fun (txId: Guid) -> withUserId (fun userId -> Handlers.Partials.editForm(txId, userId)))
     putf "/tx/edit/%O" (fun (txId: Guid) -> withUserId(fun userId -> Handlers.Form.editTx(txId, userId)))
@@ -53,7 +56,7 @@ let secureRoutes = withAuth >=> router {
     get "/history" (withUserId Handlers.Partials.history)
     get "/balance" (withUserId Handlers.Partials.balance)
     get "/fiat-value" (withUserId Handlers.Partials.fiatValue)
-    get "/btc-price" (Handlers.Partials.btcPrice)
+    get "/btc-price" (withUserId Handlers.Partials.btcPrice)
     get "/chart" Handlers.Partials.chart
     get "/workbench/formula-designer" Handlers.Partials.workbenchFormulaDesigner
     post "/workbench/formula/sma" Handlers.Partials.workbenchFormulaSma
@@ -64,14 +67,12 @@ let secureRoutes = withAuth >=> router {
     get "/charts/dca-calculator" Handlers.Partials.dcaCalculatorChart
     
     get "/api/portfolio-summary" (withUserId Handlers.Api.portfolioSummary)
-    get "/api/chart" (withUserId Handlers.Api.chartApi)
     get "/api/200-wma" (withUserId Handlers.Api.``200 wma api``)
-    get "/api/portfolio-value" (withUserId Handlers.Api.portfolioValue)
     
     get "/api/workbench-config" Handlers.Api.workbenchConfig
     get "/api/fiat-value-chart-config" (withUserId Handlers.Api.fiatValueChartConfig)
     get "/api/dca-calculator" (withUserId Handlers.Api.dcaCalculatorChartConfig)
-    get "/api/btc-price-chart" Handlers.Api.btcPriceChart
+    get "/api/btc-price-chart" (withUserId Handlers.Api.btcPriceChart)
 }
 
 let publicRoutes = router {

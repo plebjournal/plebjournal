@@ -506,6 +506,35 @@ let txDetails (t: Transaction) (change: Change option) =
                 ]
             ]
     ]
+    
+    
+let userSettings (preferredFiat: Fiat) =
+    let fiatOption (fiatOption: string) (preferredFiat: Fiat) =
+        let attrs = [ _value fiatOption; ] @ (if preferredFiat.ToString() = fiatOption then [ _selected ] else []) 
+        option attrs [ str fiatOption ]    
+    
+    form [
+        _hxPost "/settings/user-settings"
+        _hxSwap "outerHTML"
+        _hxTarget "this"
+        ] [
+        div [ _class "mb-3" ] [
+            label [ _class "form-label required"; _required;  ] [ str "Fiat" ]
+            select [ _type "button"; _name "Fiat"; _required; _class "form-select" ] [
+                fiatOption "USD" preferredFiat
+                fiatOption "CAD" preferredFiat
+                fiatOption "EUR" preferredFiat
+            ]
+        ]  
+        div [ _class "row mb-3" ] [
+            div [ _class "loading-spinner"; _class "col" ] [
+                div [ _class "spinner-border text-blue"; ] []
+            ]
+            div [ _class "col-auto" ] [
+                button [ _type "submit"; _class "btn btn-primary" ] [ str "Save" ]
+            ]
+        ]
+    ]
 
 let workbenchFormulaDesigner (formulaValue: string option) (graphableSeries: (string * GraphableDataSeries) list) =
     div [ _id "formula-designer" ] [

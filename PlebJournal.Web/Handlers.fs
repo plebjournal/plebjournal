@@ -47,7 +47,17 @@ module Pages =
     let dcaCalculator: HttpHandler =
         DcaCalculator.dcaCalculatorPage |> Layout.withLayout |> htmlView
         
+    let settings: HttpHandler =
+        Settings.settingsPage |> Layout.withLayout |> htmlView
+        
 module Partials =
+    let userSettings (userId: Guid) : HttpHandler =
+        fun next ctx -> task {
+            let db = ctx.GetService<PlebJournalDb>()
+            let! preferredFiat = UserSettings.getPreferredFiat db userId
+            return! htmlView (Partials.Forms.userSettings preferredFiat) next ctx
+        }
+            
     let userNav: HttpHandler =
         fun next ctx ->
             let user =
@@ -125,6 +135,7 @@ module Partials =
                     
                 return! htmlView (Partials.TxHistory.historyTable txHistoryModel) next ctx
             }
+    
     let epochs : HttpHandler =
         fun next ctx -> task {
             let! currentBlockHeight = Mempool_Space.getBlockchainTip ()
@@ -135,7 +146,6 @@ module Partials =
         fun next ctx ->
             let db = ctx.GetService<PlebJournalDb>()
             task {
-                let! cadPrice = CurrentPrice.Read.getCurrentPrice db CAD
                 let! txs = Transactions.Read.getAllTxsForUser db userId
                 let sixMonthsAgo = DateTime.Now.AddMonths(-6).Date;
                 let txsUntil6MonthsAgo =
@@ -145,11 +155,6 @@ module Partials =
                     txsUntil6MonthsAgo |> Calculate.foldTxs |> (fun btc -> { Total = btc })
                 let totalStackToday = txs |> Calculate.foldTxs |> (fun btc -> { Total = btc })
                                 
-                let value =
-                    totalStackToday.Total * cadPrice
-                    |> decimal
-                    |> Calculate.twoDecimals
-                    |> (*) 1.0m<btc>
                     
                 let change = Calculate.numericalChange
                                  (decimal totalStack6MonthsAgo.Total)
@@ -162,28 +167,32 @@ module Partials =
         fun next ctx ->
             let db = ctx.GetService<PlebJournalDb>()
             task {
-                let! cadPrice = CurrentPrice.Read.getCurrentPrice db CAD
+                let! preferredFiat = UserSettings.getPreferredFiat db userId
+                let! currentPrice = CurrentPrice.Read.getCurrentPrice db preferredFiat
                 let! txs = Transactions.Read.getAllTxsForUser db userId
                 let res = txs |> Calculate.foldTxs |> (fun btc -> { Total = btc })
                 
-                let totalValueToday = res.Total * cadPrice
+                let totalValueToday = res.Total * currentPrice
                 let costBasis = Calculate.fiatCostBasis txs
                 let vm = {
                     CostBasis = costBasis
                     Balance = res
                     CurrentValue = totalValueToday
                     Ngu = Calculate.ngu (decimal totalValueToday) costBasis
+                    Fiat = preferredFiat
                 }
                 return! htmlView (Partials.Widgets.fiatValue vm) next ctx
             }
             
-    let btcPrice : HttpHandler =
+    let btcPrice (userId: Guid): HttpHandler =
         fun next ctx ->
             let db = ctx.GetService<PlebJournalDb>()
             task {
-                let! cadPrice = CurrentPrice.Read.getCurrentPrice db CAD
+                let! preferredFiat = UserSettings.getPreferredFiat db userId
+
+                let! price = CurrentPrice.Read.getCurrentPrice db preferredFiat
                 
-                return! htmlView (Partials.Widgets.btcPrice cadPrice) next ctx
+                return! htmlView (Partials.Widgets.btcPrice { Price = price; Fiat = preferredFiat }) next ctx
             }
     
     let chart: HttpHandler =
@@ -225,26 +234,21 @@ module Form =
             let logger = ctx.GetLogger("CreateAccount")
             let userManager = ctx.GetService<UserManager<PlebUser>>()
             let signInManager = ctx.GetService<SignInManager<PlebUser>>()
-            
-            let validate (create: CreateNewAccount) =
-                if create.Password <> create.PasswordRepeat then
-                    Error { Username = None; Password = Some "Passwords should match"; Identity = [] }
-                else if String.IsNullOrWhiteSpace(create.Username) then
-                    Error { Username = Some "Username cannot be empty"; Password = None; Identity = [] } else
-                Ok create
-            
+            let db = ctx.GetService<PlebJournalDb>()
             let success = withHxRedirect "/" >=> htmlView (CreateAccount.createAccountForm None)
             let backToForm err = setStatusCode 422 >=> htmlView (CreateAccount.createAccountForm (Some err))
+            
             task {
                 let! newAccount = ctx.BindFormAsync<CreateNewAccount>()
-                let valid = validate newAccount
-                match valid with
+                match Validation.CreateAccount.validateCreateAccount newAccount with
                 | Ok account ->
                     let identity = PlebUser(account.Username)
                     
                     let! user = userManager.CreateAsync(identity, account.Password)
                     if user.Succeeded then
                         do! signInManager.SignInAsync(identity, false)
+                        let userId = identity.Id
+                        do! UserSettings.setPreferredFiat db userId account.Fiat 
                         return! success next ctx
                     else
                         let e = user.Errors |> Seq.toList |> List.map (fun e -> e.Description)
@@ -354,7 +358,7 @@ module Form =
             let db = ctx.GetService<PlebJournalDb>()
             task {
                 let! boughtBtc = ctx.BindFormAsync<CreateBtcTransaction>()
-                let validated = Validation.validateNewTransaction boughtBtc
+                let validated = Validation.Transaction.validateNewTransaction boughtBtc
                 match validated with
                 | Ok tx ->
                     let domain = toDomain tx
@@ -454,7 +458,7 @@ module Form =
             let db = ctx.GetService<PlebJournalDb>()
             task {
                 let! update = ctx.BindFormAsync<EditBtcTransaction>()
-                let validated = Validation.validateEditedTransaction update
+                let validated = Validation.Transaction.validateEditedTransaction update
                 match validated with
                 | Error e ->
                     let! t = Transactions.Read.getTxById db userId txId
@@ -474,42 +478,20 @@ module Form =
                     
                     return! res
             }
-            
-module Api =
-    let chartApi (userId: Guid): HttpHandler =
-        fun next ctx ->
+     
+    let updateSettings (userId: Guid) : HttpHandler =
+        fun next ctx -> task {
             let db = ctx.GetService<PlebJournalDb>()
-            task {
-                let! txs = Transactions.Read.getAllTxsForUser db userId
+            let! form = ctx.BindFormAsync<UpdateSettings>()
+            
+            do! UserSettings.setPreferredFiat db userId form.Fiat
+            let! preferredFiat = UserSettings.getPreferredFiat db userId
 
-                let model =
-                    txs
-                    |> Calculate.foldDailyTransactions
-                    |> Calculate.movingSumOfTxs
-                    |> Seq.toList
-                    
-                let append =
-                    match List.tryLast model with
-                    | Some (d, amount) ->
-                        [ DateTime.Today.Date, amount ]
-                    | None -> []
-                    
-                let appended = model @ append
-
-                let trace = {|
-                    name = "BTC Stack"
-                    mode = "lines"
-                    x = appended |> Seq.map fst
-                    y = appended |> Seq.map snd
-                    fill = "tozeroy"
-                |}
-                
-                let config = {|
-                    traces = [ trace ]
-                |}
-                return! json config next ctx
-            }
-
+            return! htmlView (Partials.Forms.userSettings preferredFiat) next ctx
+        }
+        
+    
+module Api =
     let ``200 wma api`` (userId: Guid): HttpHandler =
         fun next ctx ->
             let db = ctx.GetService<PlebJournalDb>()
@@ -542,26 +524,6 @@ module Api =
                     next
                     ctx
             }
-
-    let portfolioValue (userId: Guid): HttpHandler =
-        fun next ctx ->
-            let db = ctx.GetService<PlebJournalDb>()
-            task {
-                let! txs = Transactions.Read.getAllTxsForUser db userId
-                let! prices = Prices.Read.getPrices db CAD
-                let res = Calculate.portfolioHistoricalValue txs prices
-
-                let viewModel =
-                    res
-                    |> List.map (fun (p, amount, value) ->
-                        {| date = p.Date
-                           btcPrice = p.Price
-                           amount = amount
-                           value = value |})
-                    |> List.sortBy (fun xy -> xy.date)
-
-                return! json viewModel next ctx
-            }
             
     let portfolioSummary (userId: Guid) : HttpHandler =
         fun next ctx ->
@@ -583,12 +545,12 @@ module Api =
                 |> Option.defaultValue (DateTime(2000, 01, 01))
                 
             task {
-                
+                let! preferredFiat = UserSettings.getPreferredFiat db userId
                 let! txs = Transactions.Read.getAllTxsForUser db userId
-                let! pricesUsd = Prices.Read.getPrices db CAD
+                let! prices = Prices.Read.getPrices db preferredFiat
                 
                 let fiatValue =
-                    Calculate.portfolioHistoricalValue txs pricesUsd
+                    Calculate.portfolioHistoricalValue txs prices
                     |> List.sortBy (fun (a, _,_) -> a.Date)
                     |> List.where (fun (d, _, _) -> d.Date >= horizon)
                 
@@ -689,9 +651,9 @@ module Api =
                     |> dateHorizon
                     |> Option.defaultValue (DateTime(2000, 01, 01))
                 
+                let! preferredFiat = UserSettings.getPreferredFiat db userId
                 let! txs = Transactions.Read.getAllTxsForUser db userId
-                let! prices =
-                    Prices.Read.getPrices db CAD
+                let! prices = Prices.Read.getPrices db preferredFiat
                     
                 let res =
                     Calculate.portfolioHistoricalValue txs prices
@@ -761,11 +723,12 @@ module Api =
                 return! json config next ctx
             }
             
-    let btcPriceChart : HttpHandler =
+    let btcPriceChart (userId: Guid) : HttpHandler =
         fun next ctx ->
             let db = ctx.GetService<PlebJournalDb>()
             task {
-                let! prices = Prices.Read.getPricesUntilDate db USD (DateTime.UtcNow.AddMonths(-6))
+                let! preferredFiat = UserSettings.getPreferredFiat db userId
+                let! prices = Prices.Read.getPricesUntilDate db preferredFiat (DateTime.UtcNow.AddMonths(-6))
                 
                 let trace = {|
                     mode = "lines"

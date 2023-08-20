@@ -2,7 +2,6 @@ module Stacker.Web.Views.Partials.Widgets
 
 open System.Globalization
 open Stacker.Calculate
-open Stacker.Domain
 open Giraffe.ViewEngine
 open Stacker.Web.Models
 
@@ -54,7 +53,7 @@ let fiatValue (fiatBalance: FiatBalanceViewModel) =
                     div [ _class "h1 mb-3 me-3" ] [
                         let culture = CultureInfo.CreateSpecificCulture("en-US")
                         let valueStr = value.ToString("C2", culture)
-                        str $"{valueStr} CAD"
+                        str $"{valueStr} {fiatBalance.Fiat}"
                     ]
                 ]
 
@@ -64,7 +63,7 @@ let fiatValue (fiatBalance: FiatBalanceViewModel) =
             ]
         ]
 
-let btcPrice (cad: decimal) =
+let btcPrice { Price = price; Fiat = fiat } =
     let culture = CultureInfo.CreateSpecificCulture("en-US")
 
     div [ _class "card" ] [
@@ -74,8 +73,8 @@ let btcPrice (cad: decimal) =
             ]
             div [ _class "d-flex align-items-baseline" ] [
                 div [ _class "h1 mb-1" ] [
-                    let valueStr = cad.ToString("C2", culture)
-                    str $"{valueStr} CAD"
+                    let valueStr = price.ToString("C2", culture)
+                    str $"{valueStr} {fiat}"
                 ]
             ]
             div [ _id "btc-price-card-sparkline" ] [ ]

@@ -11,7 +11,7 @@ let userNav (user: string option) =
                 str usr
             ]
             div [ _class "dropdown-menu dropdown-menu-end dropdown-menu-arrow" ] [
-                a [ _href "#"; _class "dropdown-item" ] [ str "Settings" ]
+                a [ _href "/settings"; _class "dropdown-item" ] [ str "Settings" ]
                 a [ _href "/logout"; _class "dropdown-item" ] [ str "Logout" ]
             ]
         ]

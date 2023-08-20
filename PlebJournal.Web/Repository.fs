@@ -73,11 +73,9 @@ module Transactions =
 
     let txFromDao (dao: Models.Transaction) =
         let parseFiat (fiat: string) =
-            match fiat.ToLower() with
-            | "usd" -> USD
-            | "cad" -> CAD
-            | "eur" -> EUR
-            | _ -> failwith $"Unsupported fiat currency {fiat}"
+            match Fiat.fromString fiat with
+            | Some f -> f
+            | None -> failwith $"Unsupported fiat currency {fiat}"
 
         match dao.Type.ToLower() with
         | "buy" ->
@@ -300,3 +298,44 @@ module CurrentPrice =
 
                 return p.BtcPrice
             }
+
+module UserSettings =
+    let private preferredFiat = "PreferredFiat"
+    
+    let getPreferredFiat (db: PlebJournalDb) (userId: Guid) = task {
+        let! fiat =
+            db.UserSettings
+                .Where(fun us -> us.Name = preferredFiat && us.PlebUser.Id = userId)
+                .FirstOrDefaultAsync()
+        if fiat = null then return USD else
+        return Fiat.fromString(fiat.Value) |> Option.defaultValue USD
+    }
+    
+    let upsertSetting (db: PlebJournalDb) (userId: Guid) (name: string) (value: string) =
+        task {
+            let! user = db.Users.FindAsync(userId)
+            let! existingSetting =
+                db.UserSettings
+                    .Where(fun us -> us.Name = preferredFiat && us.PlebUser.Id = userId)
+                    .FirstOrDefaultAsync()
+            
+            if existingSetting = null then
+                let setting = UserSetting(
+                    Id = Guid.NewGuid(),
+                    PlebUser = user,
+                    Name = name,
+                    Value = value
+                )
+                let! _ = db.UserSettings.AddAsync(setting)
+                ()
+            else
+                existingSetting.Value <- value
+            
+            let! _ = db.SaveChangesAsync()
+            return ()
+        }
+        
+    let setPreferredFiat (db: PlebJournalDb) (userId: Guid) (fiat: Fiat) = task {
+        do! upsertSetting db userId preferredFiat (fiat.ToString())
+    }
+    

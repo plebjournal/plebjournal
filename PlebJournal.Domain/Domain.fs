@@ -54,6 +54,13 @@ module Domain =
             | CAD -> "CAD"
             | USD -> "USD"
             | EUR -> "EUR"
+            
+        static member fromString(str: string) =
+            match str.ToUpperInvariant() with
+            | "USD" -> Some USD
+            | "CAD" -> Some CAD
+            | "EUR" -> Some EUR
+            | _ -> None
 
     type FiatAmount =
         { Amount: decimal
