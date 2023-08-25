@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 body {
     font-family: monospace;
 }
@@ -24,4 +28,8 @@ body {
 
 .htmx-request .loading-spinner  {
     display: block;
+}
+
+.fun-button {
+    @apply text-2xl text-amber-950
 }

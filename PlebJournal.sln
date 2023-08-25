@@ -8,6 +8,10 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "PlebJournal.Domain.Tests", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlebJournal.Db", "PlebJournal.Db\PlebJournal.Db.csproj", "{B2F5737E-B6EC-4F3F-A2B3-DF23F1C94FE9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlebJournal.Templates", "PlebJournal.Templates\PlebJournal.Templates.csproj", "{AF3B1F0C-9A3D-4229-BE6B-BE2F2F537F35}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "PlebJournal.Dto", "PlebJournal.Dto\PlebJournal.Dto.fsproj", "{DC56E829-D2E8-4BD1-95CF-23B35FF07382}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -30,5 +34,13 @@ Global
 		{B2F5737E-B6EC-4F3F-A2B3-DF23F1C94FE9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B2F5737E-B6EC-4F3F-A2B3-DF23F1C94FE9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B2F5737E-B6EC-4F3F-A2B3-DF23F1C94FE9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AF3B1F0C-9A3D-4229-BE6B-BE2F2F537F35}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AF3B1F0C-9A3D-4229-BE6B-BE2F2F537F35}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AF3B1F0C-9A3D-4229-BE6B-BE2F2F537F35}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AF3B1F0C-9A3D-4229-BE6B-BE2F2F537F35}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DC56E829-D2E8-4BD1-95CF-23B35FF07382}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DC56E829-D2E8-4BD1-95CF-23B35FF07382}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DC56E829-D2E8-4BD1-95CF-23B35FF07382}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DC56E829-D2E8-4BD1-95CF-23B35FF07382}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

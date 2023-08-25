@@ -46,6 +46,7 @@
     <ItemGroup>
       <ProjectReference Include="..\PlebJournal.Db\PlebJournal.Db.csproj" />
       <ProjectReference Include="..\PlebJournal.Domain\PlebJournal.Domain.fsproj" />
+      <ProjectReference Include="..\PlebJournal.Templates\PlebJournal.Templates.csproj" />
     </ItemGroup>
 
     <ItemGroup>
@@ -58,6 +59,7 @@
       <PackageReference Include="Giraffe.ViewEngine.Htmx" Version="1.8.4" />
       <PackageReference Include="Quartz" Version="3.5.0" />
       <PackageReference Include="Quartz.AspNetCore" Version="3.5.0" />
+      <PackageReference Include="Razor.Templating.Core" Version="1.8.0" />
       <PackageReference Include="Saturn" Version="0.16.1" />
     </ItemGroup>
 

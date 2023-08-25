@@ -83,6 +83,8 @@ let publicRoutes = router {
     post "/login" Handlers.Form.login
     get "/twitter" Handlers.Pages.twitter
     get "/nav/user" Handlers.Partials.userNav
+    get "/razor/lib" Handlers.Pages.testing
+    get "/razor/lib-2" Handlers.Pages.testing2
 }
 
 let topRouter : HttpHandler =

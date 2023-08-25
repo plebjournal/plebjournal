@@ -7,18 +7,33 @@ open FParsec.CharParsers
 open Giraffe
 open Giraffe.Htmx
 open Microsoft.AspNetCore.Identity
+open Microsoft.AspNetCore.Mvc
 open Microsoft.Extensions.Logging
 open PlebJournal.Db
+open Razor.Templating.Core
 open Stacker
 open GenerateSeries
 open Domain
 open Stacker.Web
-open Models
+open PlebJournal.Dto.Models
 open FsToolkit.ErrorHandling
 open Stacker.Web.Models
 open Stacker.Web.Views
 open Stacker.Web.Views.Pages
 open Repository
+
+
+type Razor() =
+    static member render(view: string) : HttpHandler =
+        fun next ctx -> task {
+            let! rendered = RazorTemplateEngine.RenderAsync($"~/Views/{view}")
+            return! htmlString rendered next ctx
+        }
+    static member render(view: string, model: obj) : HttpHandler =
+        fun next ctx -> task {
+            let! rendered = RazorTemplateEngine.RenderAsync($"~/Views/{view}", model)
+            return! htmlString rendered next ctx
+        }
 
 module Pages =
     let index: HttpHandler = Index.indexPage |> Layout.withLayout |> htmlView
@@ -49,6 +64,11 @@ module Pages =
         
     let settings: HttpHandler =
         Settings.settingsPage |> Layout.withLayout |> htmlView
+        
+    let testing = Razor.render "Testing.cshtml"
+    let testing2 =
+        let model : PlebJournal.Dto.Models.Balance = { Total = 123.0m<btc> }
+        Razor.render ("Testing.cshtml", model)
         
 module Partials =
     let userSettings (userId: Guid) : HttpHandler =

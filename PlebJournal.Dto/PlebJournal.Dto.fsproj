@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net7.0</TargetFramework>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    </PropertyGroup>
+
+
+    <ItemGroup>
+      <Compile Include="Models.fs" />
+      <Compile Include="Validation.fs" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\PlebJournal.Domain\PlebJournal.Domain.fsproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="FsToolkit.ErrorHandling" Version="4.7.0" />
+    </ItemGroup>
+
+</Project>
