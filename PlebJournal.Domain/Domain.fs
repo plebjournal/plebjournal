@@ -62,6 +62,26 @@ module Domain =
             | "EUR" -> Some EUR
             | _ -> None
 
+    type Sentiment =
+        | Resilient
+        | Patient
+        | Hopeful
+        | Optimistic
+        | FOMO
+        | Euphoric
+        | Skeptical
+        | Cautious
+        | Regretful
+        | Anxious
+        | Panic
+        | Exhausted
+    
+    type Note =
+        { Text: string
+          Sentiment: Sentiment option
+          BtcPrice: decimal
+          Fiat: Fiat }    
+    
     type FiatAmount =
         { Amount: decimal
           Currency: Fiat }
@@ -139,3 +159,4 @@ module Domain =
                 let perCoin = a.Amount / btcAmount |> decimal
                 (perCoin, a.Currency) |> Some
             | None -> None
+   

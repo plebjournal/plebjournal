@@ -14,21 +14,29 @@ public class PlebUser : IdentityUser<Guid>
     {
         Transactions = new List<Transaction>();
         UserSettings = new List<UserSetting>();
+        Notes = new List<Note>();
     }
+
     public List<Transaction> Transactions { get; set; }
     public List<UserSetting> UserSettings { get; set; }
+    public List<Note> Notes { get; set; }
 }
 
-public class Role : IdentityRole<Guid> { }
+public class Role : IdentityRole<Guid>
+{
+}
 
 public class PlebJournalDb : IdentityDbContext<PlebUser, Role, Guid>
 {
-    public PlebJournalDb(DbContextOptions<PlebJournalDb> opts) : base(opts) { }
+    public PlebJournalDb(DbContextOptions<PlebJournalDb> opts) : base(opts)
+    {
+    }
 
     public DbSet<Transaction> Transactions { get; set; }
     public DbSet<Price> Prices { get; set; }
     public DbSet<CurrentPrice> CurrentPrices { get; set; }
     public DbSet<UserSetting> UserSettings { get; set; }
+    public DbSet<Note> Notes { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -42,7 +50,7 @@ public class PlebJournalDbFactory : IDesignTimeDbContextFactory<PlebJournalDb>
     public PlebJournalDb CreateDbContext(string[] args)
     {
         var optionsBuilder = new DbContextOptionsBuilder<PlebJournalDb>();
-        optionsBuilder.UseNpgsql("User ID=postgres;Password=password;Host=localhost;Port=5469;");
+        optionsBuilder.UseNpgsql("User ID=postgres;Password=password;Host=localhost;Port=2121;Database=plebjournal");
 
         return new PlebJournalDb(optionsBuilder.Options);
     }
