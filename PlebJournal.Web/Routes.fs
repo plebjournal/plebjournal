@@ -39,7 +39,11 @@ let secureRoutes = withAuth >=> router {
     get "/settings" Handlers.Pages.settings
     get "/settings/user-settings" (withUserId Handlers.Partials.userSettings)
     post "/settings/user-settings" (withUserId Handlers.Form.updateSettings)
+    
     get "/bought" Handlers.Partials.boughtBitcoinForm
+    get "/take-a-note" (withUserId Handlers.Partials.notesForm)
+    post "/note" (withUserId Handlers.Form.createNote)
+    
     getf "/tx/edit/%O" (fun (txId: Guid) -> withUserId (fun userId -> Handlers.Partials.editForm(txId, userId)))
     putf "/tx/edit/%O" (fun (txId: Guid) -> withUserId(fun userId -> Handlers.Form.editTx(txId, userId)))
     getf "/tx/details/%O" (fun (txId: Guid) -> withUserId (fun userId -> Handlers.Partials.txDetails(txId, userId)))
@@ -81,7 +85,6 @@ let publicRoutes = router {
     post "/create-account" Handlers.Form.createAccount
     get "/login" Handlers.Pages.login
     post "/login" Handlers.Form.login
-    get "/twitter" Handlers.Pages.twitter
     get "/nav/user" Handlers.Partials.userNav
 }
 

@@ -19,21 +19,23 @@ let indexPage =
             div [ _class "col-auto" ] [
                 div [ _class "btn-list" ] [
                     button [
-                        _class "btn btn-primary d-none d-sm-inline-block"
+                        _class "btn btn-primary d-sm-inline-block"
                         _hxTrigger "click"
                         _hxTarget "#modal-container"
                         _hxGet "/bought"
                     ] [
                         str "Enter Transaction"
                     ]
+                    
                     button [
-                        _class "btn btn-primary d-sm-none"
+                        _class "btn btn-primary d-sm-inline-block"
                         _hxTrigger "click"
                         _hxTarget "#modal-container"
-                        _hxGet "/bought"                    
+                        _hxGet "/take-a-note"
                     ] [
-                        i [ _class "ti ti-plus" ] []
+                        str "Take a Note"
                     ]
+
                     button [
                         _class "btn d-none d-sm-inline"
                         _hxTarget "#modal-container"

@@ -339,3 +339,18 @@ module UserSettings =
         do! upsertSetting db userId preferredFiat (fiat.ToString())
     }
     
+module Notes =
+    let createNote (db: PlebJournalDb) (userId: Guid) (note: Stacker.Domain.Note) =
+        task {
+            let! user = db.Users.FindAsync(userId)
+            let newNote = PlebJournal.Db.Models.Note(
+                PlebUser = user,
+                Text = note.Text,
+                Currency = note.Fiat.ToString(),
+                Sentiment = (note.Sentiment |> Option.map string |> Option.defaultValue null),
+                Price = note.BtcPrice
+            )
+            let! _ = db.Notes.AddAsync(newNote)
+            let! _ = db.SaveChangesAsync()
+            return ()
+        }

@@ -70,8 +70,14 @@ type DcaCalculation =
       DurationUnit: Duration }
     
 [<CLIMutable>]
-type UpdateSettings = { Fiat: Fiat }    
-    
+type UpdateSettings = { Fiat: Fiat }
+
+[<CLIMutable>]
+type CreateNote =
+    { Date: DateTime
+      NoteBody: string
+      Sentiment: Sentiment }
+
 type TxHistoryViewModel =
     { Transaction: Transaction
       PercentChange: Change option
@@ -87,6 +93,11 @@ type FiatBalanceViewModel =
 type CurrentBtcPrice =
     { Price: decimal
       Fiat: Fiat }
+    
+type NewNoteForm =
+    { CurrentPrice: decimal
+      Fiat: Fiat
+      CurrentDate: DateTime }
     
 type TxHistoryHorizon =
     | TwoMonths

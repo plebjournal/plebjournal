@@ -1,13 +1,5 @@
-body {
-    font-family: monospace;
-}
-
 .show {
     display: block;
-}
-
-.btn {
-    font-family: monospace;
 }
 
 .htmx-request a {

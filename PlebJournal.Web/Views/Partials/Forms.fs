@@ -7,6 +7,7 @@ open Giraffe.ViewEngine
 open Giraffe.ViewEngine.Htmx
 open Stacker.Charting.Domain
 open Stacker.GenerateSeries
+open Stacker.Web.Models
 
 let importForm (errs: string list) =
     div [] [
@@ -174,6 +175,78 @@ let boughtBtcModal =
                             ] ] ]
                    ]
     ]
+
+let newNoteForm (newNote: NewNoteForm) =
+    form [
+        _hxPost "/note"
+        _hxTarget "this"
+        _hxSwap "outerHTML"] [
+
+        div [ _class "row mb-3" ] [
+            div [ _class "col-sm-12 col-md-4" ] [
+                label [ _class "form-label"; _for "sentiment" ] [ str "Sentiment" ]
+                select [ _class "form-control form-select"; _name "sentiment" ]
+                    (Sentiment.AllCases |> List.map (fun name -> option [ _value name ] [ str name ]))
+            ]
+            div [ _class "col-sm-12 col-md-4" ] [
+                label [ _class "form-label"; _for "noteDate" ] [ str "Date" ]
+                input [ _type "text"; _name "noteDate"; _disabled; _class "form-control form-input"; _value (newNote.CurrentDate.ToString("yyyy-MM-dd")) ] 
+            ]
+            div [ _class "col-sm-12 col-md-4" ] [
+                label [ _class "form-label"; _for "currentPrice" ] [ str "Current Price" ]
+                input [ _name "currentPrice"; _disabled; _class "form-control form-input"; _value $"""{newNote.CurrentPrice} - {newNote.Fiat}""" ] 
+            ]
+        ]
+        div [ _class "row mb-3" ] [
+            div [ _class "col-sm-12" ] [
+                label [ _class "form-label"; _for "noteBody" ] [ str "What's on your mind?" ]
+                textarea [
+                    _class "form-control"
+                    _name "noteBody"
+                    _rows "6"
+                ] []
+            ]
+        ]        
+        
+        div [ _class "row" ] [
+            div [ _class "col" ] [
+                button [
+                    _class "btn btn-secondary"; _onclick "closeModal()"
+                ] [ str "Cancel" ]
+            ]
+            div [ _class "col-auto" ] [
+                button [
+                    _type "submit"
+                    _class "btn btn-success"
+                ]  [ str "Save" ]
+            ]
+        ]
+    ]
+
+let notesModal (newNote: NewNoteForm) =
+    div [] [
+        div [
+            _class "modal modal-backdrop fade show"
+            _style "display:block;"
+        ] []
+        div
+            [ _class "modal show modal-blur"
+              _style "display:block;"
+              _tabindex "-1" ] [
+                div [ _class "modal-dialog" ] [
+                    div
+                        [ _class "modal-content"; ]
+                        [
+                            div [ _class "modal-header" ] [
+                                h1 [ _class "modal-title" ] [ str "Take a Note" ]
+                                button [ _type "button"; _class "btn-close"; _onclick "closeModal()" ] []
+                            ]
+                            div [ _class "modal-body" ] [
+                                newNoteForm newNote
+                            ] ] ]
+                   ]
+    ]
+    
     
 let deleteModal (t: Transaction) =
     div [] [

@@ -11,7 +11,7 @@ let private htmlHead =
           link [ _rel "icon"; _type "image/x-icon"; _href "/img/favicon.png" ]
           link
               [ _rel "stylesheet"
-                _href "https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta17/dist/css/tabler.min.css" ]
+                _href "https://cdn.jsdelivr.net/npm/@tabler/core@latest/dist/css/tabler.min.css" ]
           link
               [ _rel "stylesheet"
                 _href "https://cdn.jsdelivr.net/npm/@tabler/icons@latest/iconfont/tabler-icons.min.css" ]
@@ -25,7 +25,7 @@ let private htmlHead =
           script [ _src "/js/htmx.js" ] []
           script
               [ _type "module"
-                _src "https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta16/dist/js/tabler.min.js" ]
+                _src "https://cdn.jsdelivr.net/npm/@tabler/core@latest/dist/js/tabler.min.js" ]
               []
           script [ _src "/js/toast.js" ] []
           script [ _src "/js/modal-helper.js" ] []
@@ -97,11 +97,6 @@ let private navbar =
                                       [ a
                                             [ _class "nav-link"; _href "/work-bench" ]
                                             [ span [ _class "nav-link-title" ] [ str "Workbench" ] ] ]
-                                  li
-                                      [ _class "nav-item" ]
-                                      [ a
-                                            [ _class "nav-link"; _href "/twitter" ]
-                                            [ span [ _class "nav-link-title" ] [ str "Twitter" ] ] ]
                                    ] ] ] ] ]
 
 let private toast =

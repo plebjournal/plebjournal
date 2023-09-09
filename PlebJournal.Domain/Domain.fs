@@ -1,6 +1,7 @@
 ﻿namespace Stacker
 
 open System
+open Microsoft.FSharp.Reflection
 
 module Domain =
     [<Measure>]
@@ -75,6 +76,11 @@ module Domain =
         | Anxious
         | Panic
         | Exhausted
+        
+        static member AllCases =
+            FSharpType.GetUnionCases(typeof<Sentiment>)
+            |> Array.map (fun a -> a.Name)
+            |> Array.toList
     
     type Note =
         { Text: string
