@@ -32,6 +32,7 @@ let logout : HttpHandler =
 let secureRoutes = withAuth >=> router {
     get "/" Handlers.Pages.index
     get "/transactions" Handlers.Pages.transactions
+    get "/notes" Handlers.Pages.notes
     get "/blockchaininfo" Handlers.Pages.blockChainInfo
     get "/indicators" Handlers.Pages.indicators
     get "/work-bench" Handlers.Pages.workbench
@@ -56,7 +57,9 @@ let secureRoutes = withAuth >=> router {
     post "/workbench/formula" Handlers.Form.formula
     get "/import" Handlers.Partials.importForm
     post "/import" (withUserId Handlers.Form.upload)
-    get "/epochs" Handlers.Partials.epochs    
+    get "/epochs" Handlers.Partials.epochs
+    get "/notes-list" (withUserId Handlers.Partials.listNotes)
+    getf "/notes/%O" (fun (noteId: Guid) -> withUserId (fun userId -> Handlers.Form.noteDetails(noteId, userId)))
     get "/history" (withUserId Handlers.Partials.history)
     get "/balance" (withUserId Handlers.Partials.balance)
     get "/fiat-value" (withUserId Handlers.Partials.fiatValue)

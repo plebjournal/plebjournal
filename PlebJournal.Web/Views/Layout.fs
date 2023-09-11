@@ -80,6 +80,11 @@ let private navbar =
                                   li
                                       [ _class "nav-item" ]
                                       [ a
+                                            [ _class "nav-link"; _href "/notes" ]
+                                            [ span [ _class "nav-link-title" ] [ str "Notes" ] ] ]
+                                  li
+                                      [ _class "nav-item" ]
+                                      [ a
                                             [ _class "nav-link"; _href "/blockchaininfo" ]
                                             [ span [ _class "nav-link-title" ] [ str "Blockchain Info" ] ] ]                                  
                                   li

@@ -177,7 +177,7 @@ let boughtBtcModal =
     ]
 
 let newNoteForm (newNote: NewNoteForm) =
-    form [
+   form [
         _hxPost "/note"
         _hxTarget "this"
         _hxSwap "outerHTML"] [
@@ -221,7 +221,7 @@ let newNoteForm (newNote: NewNoteForm) =
                 ]  [ str "Save" ]
             ]
         ]
-    ]
+    ] 
 
 let notesModal (newNote: NewNoteForm) =
     div [] [
@@ -246,6 +246,66 @@ let notesModal (newNote: NewNoteForm) =
                             ] ] ]
                    ]
     ]
+
+let noteDetailsForm (note: Note) =
+    form [] [
+        div [ _class "row mb-3" ] [
+            div [ _class "col-sm-12 col-md-4" ] [
+                label [ _class "form-label"; _for "sentiment" ] [ str "Sentiment" ]
+                select [ _class "form-control form-select"; _name "sentiment"; _disabled ] [
+                    if note.Sentiment.IsSome then
+                        let sentiment = note.Sentiment.Value.ToString()
+                        option [ _value sentiment; _selected ] [ str sentiment ]
+                    else
+                        option [] []
+                ]
+            ]
+            div [ _class "col-sm-12 col-md-4" ] [
+                label [ _class "form-label"; _for "noteDate" ] [ str "Date" ]
+                input [ _type "text"; _name "noteDate"; _disabled; _class "form-control form-input"; _value (note.Date.ToString("yyyy-MM-dd")) ] 
+            ]
+            div [ _class "col-sm-12 col-md-4" ] [
+                label [ _class "form-label"; _for "currentPrice" ] [ str "Price" ]
+                input [ _name "currentPrice"; _disabled; _class "form-control form-input"; _value $"""{note.BtcPrice} - {note.Fiat}""" ] 
+            ]
+        ]
+        div [ _class "row mb-3" ] [
+            div [ _class "col-sm-12" ] [
+                label [ _class "form-label"; _for "noteBody" ] [ str "What's on your mind?" ]
+                textarea [
+                    _class "form-control"
+                    _name "noteBody"
+                    _rows "12"
+                ] [ str note.Text ]
+            ]
+        ]
+    ]
+
+let noteDetailsModal (note: Note) =
+    div [] [
+        div [
+            _class "modal modal-backdrop fade show"
+            _style "display:block;"
+        ] []
+        div [
+            _class "modal show modal-blur"
+            _style "display:block;"
+            _tabindex "-1"
+        ] [
+            div [ _class "modal-dialog" ] [
+                div [ _class "modal-content"; ] [
+                    div [ _class "modal-header" ] [
+                        h1 [ _class "modal-title" ] [ str "Take a Note" ]
+                        button [ _type "button"; _class "btn-close"; _onclick "closeModal()" ] []
+                    ]
+                    div [ _class "modal-body" ] [
+                        noteDetailsForm note
+                    ]
+                ]
+            ]
+        ]
+    ]
+
     
     
 let deleteModal (t: Transaction) =

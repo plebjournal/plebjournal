@@ -27,6 +27,9 @@ module Pages =
     let transactions: HttpHandler =
         Transactions.transactionsPage |> Layout.withLayout |> htmlView
         
+    let notes: HttpHandler =
+        Notes.notesPage |> Layout.withLayout |> htmlView
+        
     let blockChainInfo: HttpHandler =
         BlockchainInfo.blockchainInfoPage |> Layout.withLayout |> htmlView
 
@@ -153,6 +156,15 @@ module Partials =
             let! currentBlockHeight = Mempool_Space.getBlockchainTip ()
             return! htmlView (Partials.Epochs.epochChart currentBlockHeight) next ctx
         }
+        
+    let listNotes (userId: Guid): HttpHandler =
+        fun next ctx ->
+            task {
+                let db = ctx.GetService<PlebJournalDb>()
+                let! notes = Notes.getAll db userId
+                
+                return! htmlView (Partials.Notes.notesList notes) next ctx
+            }
 
     let balance (userId: Guid): HttpHandler =
         fun next ctx ->
@@ -513,10 +525,12 @@ module Form =
                 let! newNoteForm = ctx.BindFormAsync<CreateNote>()
                 
                 let note =
-                    { Text = newNoteForm.NoteBody
+                    { Id = Guid.NewGuid()
+                      Text = newNoteForm.NoteBody
                       Sentiment = Some newNoteForm.Sentiment
                       BtcPrice  = currentPrice
-                      Fiat = preferredFiat }
+                      Fiat = preferredFiat
+                      Date = DateTime.UtcNow }
                     
                 do! Notes.createNote db userId note
                 
@@ -531,6 +545,17 @@ module Form =
                       Fiat = preferredFiat }
                 
                 return! (withTriggers >=> htmlView (Views.Partials.Forms.notesModal model)) next ctx      
+            }
+            
+    let noteDetails (noteId: Guid, userId: Guid) : HttpHandler =
+        fun next ctx ->
+            let db = ctx.GetService<PlebJournalDb>()
+            task {
+                let! note = Notes.getNote db userId noteId
+                if note.IsNone then
+                    return! RequestErrors.BAD_REQUEST () next ctx
+                else
+                    return! htmlView (Views.Partials.Forms.noteDetailsModal note.Value) next ctx
             }
     
 module Api =
