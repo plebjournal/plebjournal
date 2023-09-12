@@ -6,6 +6,7 @@ open Giraffe.ViewEngine
 let scripts = [
     script [ _src "https://cdn.plot.ly/plotly-2.16.1.min.js" ] []
     script [ _src "https://cdn.datatables.net/v/bs5/jq-3.7.0/dt-1.13.6/b-2.4.1/datatables.min.js" ] []
+    script [ _src "https://cdn.ckeditor.com/ckeditor5/39.0.2/classic/ckeditor.js"] []
     script [ _src "/js/portfolio-summary-chart.js" ] []
     script [ _src "/js/fiat-value-chart.js" ] []
 ]

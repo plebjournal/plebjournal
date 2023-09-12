@@ -17,3 +17,7 @@
 .htmx-request .loading-spinner  {
     display: block;
 }
+
+.ck-editor__editable {
+    min-height: 200px;
+}

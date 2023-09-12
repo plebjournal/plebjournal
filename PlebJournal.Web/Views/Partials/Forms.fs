@@ -180,8 +180,8 @@ let newNoteForm (newNote: NewNoteForm) =
    form [
         _hxPost "/note"
         _hxTarget "this"
-        _hxSwap "outerHTML"] [
-
+        _hxSwap "outerHTML"
+    ] [
         div [ _class "row mb-3" ] [
             div [ _class "col-sm-12 col-md-4" ] [
                 label [ _class "form-label"; _for "sentiment" ] [ str "Sentiment" ]
@@ -201,12 +201,13 @@ let newNoteForm (newNote: NewNoteForm) =
             div [ _class "col-sm-12" ] [
                 label [ _class "form-label"; _for "noteBody" ] [ str "What's on your mind?" ]
                 textarea [
+                    _style "min-height: 300 px"
                     _class "form-control"
                     _name "noteBody"
-                    _rows "6"
+                    _id "note-body"
                 ] []
             ]
-        ]        
+        ]
         
         div [ _class "row" ] [
             div [ _class "col" ] [
@@ -221,30 +222,33 @@ let newNoteForm (newNote: NewNoteForm) =
                 ]  [ str "Save" ]
             ]
         ]
-    ] 
+    ]
 
-let notesModal (newNote: NewNoteForm) =
+let newNoteModal (newNote: NewNoteForm) =
     div [] [
         div [
             _class "modal modal-backdrop fade show"
             _style "display:block;"
         ] []
-        div
-            [ _class "modal show modal-blur"
-              _style "display:block;"
-              _tabindex "-1" ] [
+        div [
+            _class "modal show modal-blur"
+            _style "display:block;"
+            _tabindex "-1" ] [
                 div [ _class "modal-dialog" ] [
-                    div
-                        [ _class "modal-content"; ]
-                        [
-                            div [ _class "modal-header" ] [
-                                h1 [ _class "modal-title" ] [ str "Take a Note" ]
-                                button [ _type "button"; _class "btn-close"; _onclick "closeModal()" ] []
-                            ]
-                            div [ _class "modal-body" ] [
-                                newNoteForm newNote
-                            ] ] ]
-                   ]
+                    div [
+                        _class "modal-content";
+                    ] [
+                        div [ _class "modal-header" ] [
+                            h1 [ _class "modal-title" ] [ str "Take a Note" ]
+                            button [ _type "button"; _class "btn-close"; _onclick "closeModal()" ] []
+                        ]
+                        div [ _class "modal-body" ] [
+                            newNoteForm newNote
+                        ]
+                    ]
+                ]
+        ]
+        script [ _src "/js/rich-text-editor.js" ] []
     ]
 
 let noteDetailsForm (note: Note) =
@@ -271,11 +275,12 @@ let noteDetailsForm (note: Note) =
         ]
         div [ _class "row mb-3" ] [
             div [ _class "col-sm-12" ] [
-                label [ _class "form-label"; _for "noteBody" ] [ str "What's on your mind?" ]
+                label [ _class "form-label"; _for "noteBody" ] [ str "" ]
                 textarea [
                     _class "form-control"
                     _name "noteBody"
                     _rows "12"
+                    _id "note-body"
                 ] [ str note.Text ]
             ]
         ]
@@ -295,7 +300,7 @@ let noteDetailsModal (note: Note) =
             div [ _class "modal-dialog" ] [
                 div [ _class "modal-content"; ] [
                     div [ _class "modal-header" ] [
-                        h1 [ _class "modal-title" ] [ str "Take a Note" ]
+                        h1 [ _class "modal-title" ] [ note.Date.ToString("yyyy-MM-dd") |> str ]
                         button [ _type "button"; _class "btn-close"; _onclick "closeModal()" ] []
                     ]
                     div [ _class "modal-body" ] [
@@ -304,9 +309,8 @@ let noteDetailsModal (note: Note) =
                 ]
             ]
         ]
+        script [ _src "/js/rich-text-editor.js" ] []
     ]
-
-    
     
 let deleteModal (t: Transaction) =
     div [] [

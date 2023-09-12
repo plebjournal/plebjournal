@@ -31,10 +31,9 @@ let notesList (notes: Note seq) =
                     _hxTarget "#modal-container"
                 ] [
                     div [ _class "card card-body" ] [
-                        h3 [ _class "h3" ] [
+                        h3 [ _class "h1" ] [
                             n.Date.ToString("yyyy-MM-dd") |> fun s -> $"{s} " |> str
-                        ]                  
-                        div [ _style "white-space:pre"; _class "mb-3" ] [ n.Text |> take56Chars |> str ]
+                        ]
                         div [ _class "row" ] [
                             div [ _class "col" ] [
                                 span [ _class "badge badge-outline text-blue" ] [ n.Sentiment |> sentiment |> str ]

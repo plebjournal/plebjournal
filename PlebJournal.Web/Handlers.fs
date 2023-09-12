@@ -82,7 +82,7 @@ module Partials =
                     { CurrentPrice = currentPrice
                       Fiat = preferredFiat
                       CurrentDate = DateTime.Now }
-                return! htmlView (Partials.Forms.notesModal model) next ctx
+                return! htmlView (Partials.Forms.newNoteModal model) next ctx
             }
         
     let txDetails (txId: Guid, userId: Guid) : HttpHandler =
@@ -544,7 +544,7 @@ module Form =
                       CurrentPrice = currentPrice
                       Fiat = preferredFiat }
                 
-                return! (withTriggers >=> htmlView (Views.Partials.Forms.notesModal model)) next ctx      
+                return! (withTriggers >=> htmlView (Views.Partials.Forms.newNoteModal model)) next ctx      
             }
             
     let noteDetails (noteId: Guid, userId: Guid) : HttpHandler =
