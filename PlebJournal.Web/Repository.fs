@@ -339,3 +339,48 @@ module UserSettings =
         do! upsertSetting db userId preferredFiat (fiat.ToString())
     }
     
+module Notes =
+    let fromDao (note: PlebJournal.Db.Models.Note) =
+        let parseFiat currency =
+            match Fiat.fromString currency with
+            | Some f -> f
+            | None -> failwith $"Unsupported fiat currency {currency}"
+        
+        { Id = note.Id
+          Text = note.Text
+          Sentiment = Sentiment.Parse note.Sentiment
+          BtcPrice = note.Price
+          Fiat = parseFiat note.Currency
+          Date = note.Created.ToLocalTime() }
+    
+    let createNote (db: PlebJournalDb) (userId: Guid) (note: Note) =
+        task {
+            let! user = db.Users.FindAsync(userId)
+            let newNote = PlebJournal.Db.Models.Note(
+                PlebUser = user,
+                Text = note.Text,
+                Currency = note.Fiat.ToString(),
+                Sentiment = (note.Sentiment |> Option.map string |> Option.defaultValue null),
+                Price = note.BtcPrice,
+                Created = note.Date
+            )
+            let! _ = db.Notes.AddAsync(newNote)
+            let! _ = db.SaveChangesAsync()
+            return ()
+        }
+    
+    let getAll (db: PlebJournalDb) (userId: Guid) =
+        task {
+            let! notes =
+                db.Notes
+                    .Where(fun n -> n.PlebUser.Id = userId && n.Text.Length < 2048)
+                    .OrderByDescending(fun n -> n.Created)
+                    .ToArrayAsync()
+            return notes |> Array.map fromDao 
+        }
+        
+    let getNote (db: PlebJournalDb) (userId: Guid) (noteId: Guid) =
+        task {
+            let! note = db.Notes.FirstOrDefaultAsync(fun n -> n.Id = noteId && n.PlebUser.Id = userId)
+            return if note = null then None else Some (fromDao note)
+        }

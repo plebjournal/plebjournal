@@ -3,9 +3,6 @@ const loadPortfolioSummary = async (horizon) => {
   const { traces } = await fetch(`/api/portfolio-summary?horizon=${horizonQuery}`).then(res => res.json());
   const chart = document.getElementById('portfolio-chart');
   const layout = {
-    font: {
-      family: 'monospace'
-    },
     yaxis: {
       title: "Fiat Value",
       side: "left",

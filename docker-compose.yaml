@@ -1,19 +1,6 @@
 version: '3.1'
 
-services:
-  pleb-journal:
-    image: plebjournal
-    ports:
-      - "5153:8080"
-    environment:
-      Db__UserId: postgres
-      Db__Host: db
-      Db__Password: password
-      Db__Port: 5432
-      Db__Database: stacker
-    depends_on:
-      - db
-      
+services:     
   db:
     image: postgres:latest
     environment:

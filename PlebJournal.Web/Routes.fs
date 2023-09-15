@@ -30,15 +30,21 @@ let logout : HttpHandler =
         }
 
 let secureRoutes = withAuth >=> router {
+    // Pages
     get "/" Handlers.Pages.index
     get "/transactions" Handlers.Pages.transactions
+    get "/notes" Handlers.Pages.notes
     get "/blockchaininfo" Handlers.Pages.blockChainInfo
     get "/indicators" Handlers.Pages.indicators
     get "/work-bench" Handlers.Pages.workbench
     get "/dca-calculator" Handlers.Pages.dcaCalculator
     get "/settings" Handlers.Pages.settings
+    
+    // User Settings
     get "/settings/user-settings" (withUserId Handlers.Partials.userSettings)
     post "/settings/user-settings" (withUserId Handlers.Form.updateSettings)
+    
+    // Transactions
     get "/bought" Handlers.Partials.boughtBitcoinForm
     getf "/tx/edit/%O" (fun (txId: Guid) -> withUserId (fun userId -> Handlers.Partials.editForm(txId, userId)))
     putf "/tx/edit/%O" (fun (txId: Guid) -> withUserId(fun userId -> Handlers.Form.editTx(txId, userId)))
@@ -48,27 +54,44 @@ let secureRoutes = withAuth >=> router {
     get "/tx-successful-toast" Handlers.Partials.txSuccessfulToast
     post "/bought" (withUserId Handlers.Form.createTx)
     
+    // Notes
+    get "/take-a-note" (withUserId Handlers.Partials.notesForm)
+    post "/note" (withUserId Handlers.Form.createNote)
+    get "/notes-list" (withUserId Handlers.Partials.listNotes)
+    getf "/notes/%O" (fun (noteId: Guid) -> withUserId (fun userId -> Handlers.Form.noteDetails(noteId, userId)))
+        
+    // DCA Calculator
     post "/dca-calculator" (Handlers.Form.dcaCalculation)
+    
+    // Workbench
     post "/workbench/formula" Handlers.Form.formula
+    get "/workbench/formula-designer" Handlers.Partials.workbenchFormulaDesigner
+    post "/workbench/formula/sma" Handlers.Partials.workbenchFormulaSma
+
+    // Import CSV
     get "/import" Handlers.Partials.importForm
     post "/import" (withUserId Handlers.Form.upload)
-    get "/epochs" Handlers.Partials.epochs    
+    
+    // Blockchain Info
+    get "/epochs" Handlers.Partials.epochs
     get "/history" (withUserId Handlers.Partials.history)
+    
+    // Widgets
     get "/balance" (withUserId Handlers.Partials.balance)
     get "/fiat-value" (withUserId Handlers.Partials.fiatValue)
     get "/btc-price" (withUserId Handlers.Partials.btcPrice)
+    
+    // Chart Containers
     get "/chart" Handlers.Partials.chart
-    get "/workbench/formula-designer" Handlers.Partials.workbenchFormulaDesigner
-    post "/workbench/formula/sma" Handlers.Partials.workbenchFormulaSma
     get "/workbench-chart" Handlers.Partials.workbenchChart
     get "/wma-chart" Handlers.Partials.``200 wma``
     
     get "/charts/fiat-value" Handlers.Partials.fiatValueChart
     get "/charts/dca-calculator" Handlers.Partials.dcaCalculatorChart
     
+    // APIs
     get "/api/portfolio-summary" (withUserId Handlers.Api.portfolioSummary)
     get "/api/200-wma" (withUserId Handlers.Api.``200 wma api``)
-    
     get "/api/workbench-config" Handlers.Api.workbenchConfig
     get "/api/fiat-value-chart-config" (withUserId Handlers.Api.fiatValueChartConfig)
     get "/api/dca-calculator" (withUserId Handlers.Api.dcaCalculatorChartConfig)
@@ -81,7 +104,6 @@ let publicRoutes = router {
     post "/create-account" Handlers.Form.createAccount
     get "/login" Handlers.Pages.login
     post "/login" Handlers.Form.login
-    get "/twitter" Handlers.Pages.twitter
     get "/nav/user" Handlers.Partials.userNav
 }
 

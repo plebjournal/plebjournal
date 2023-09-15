@@ -9,6 +9,7 @@ open Giraffe.Htmx
 open Microsoft.AspNetCore.Identity
 open Microsoft.Extensions.Logging
 open PlebJournal.Db
+open PlebJournal.Db.Models
 open Stacker
 open GenerateSeries
 open Domain
@@ -26,6 +27,9 @@ module Pages =
     let transactions: HttpHandler =
         Transactions.transactionsPage |> Layout.withLayout |> htmlView
         
+    let notes: HttpHandler =
+        Notes.notesPage |> Layout.withLayout |> htmlView
+        
     let blockChainInfo: HttpHandler =
         BlockchainInfo.blockchainInfoPage |> Layout.withLayout |> htmlView
 
@@ -40,10 +44,7 @@ module Pages =
         
     let createAccount: HttpHandler =
         CreateAccount.createAccountPage |> Layout.withLayout |> htmlView
-        
-    let twitter: HttpHandler =
-        Twitter.twitterPage |> Layout.withLayout |> htmlView
-    
+            
     let dcaCalculator: HttpHandler =
         DcaCalculator.dcaCalculatorPage |> Layout.withLayout |> htmlView
         
@@ -68,7 +69,21 @@ module Partials =
                     claim |> Option.map (fun c -> c.Value)
             htmlView (Partials.User.userNav user) next ctx
     let boughtBitcoinForm: HttpHandler =
-        withHxTriggerAfterSettle "open-modal" >=> htmlView Partials.Forms.boughtBtcModal
+        htmlView Partials.Forms.boughtBtcModal
+        
+    let notesForm (userId: Guid): HttpHandler =
+        fun next ctx ->
+            let db = ctx.GetService<PlebJournalDb>()
+            task {
+                let! preferredFiat = UserSettings.getPreferredFiat db userId
+                let! currentPrice = CurrentPrice.Read.getCurrentPrice db preferredFiat
+                
+                let model =
+                    { CurrentPrice = currentPrice
+                      Fiat = preferredFiat
+                      CurrentDate = DateTime.Now }
+                return! htmlView (Partials.Forms.newNoteModal model) next ctx
+            }
         
     let txDetails (txId: Guid, userId: Guid) : HttpHandler =
         fun next ctx ->
@@ -141,6 +156,15 @@ module Partials =
             let! currentBlockHeight = Mempool_Space.getBlockchainTip ()
             return! htmlView (Partials.Epochs.epochChart currentBlockHeight) next ctx
         }
+        
+    let listNotes (userId: Guid): HttpHandler =
+        fun next ctx ->
+            task {
+                let db = ctx.GetService<PlebJournalDb>()
+                let! notes = Notes.getAll db userId
+                
+                return! htmlView (Partials.Notes.notesList notes) next ctx
+            }
 
     let balance (userId: Guid): HttpHandler =
         fun next ctx ->
@@ -490,6 +514,49 @@ module Form =
             return! htmlView (Partials.Forms.userSettings preferredFiat) next ctx
         }
         
+    let createNote (userId: Guid) : HttpHandler =
+        fun next ctx ->
+            let db = ctx.GetService<PlebJournalDb>()
+            
+            task {
+                let! preferredFiat = UserSettings.getPreferredFiat db userId
+                let! currentPrice = CurrentPrice.Read.getCurrentPrice db preferredFiat
+
+                let! newNoteForm = ctx.BindFormAsync<CreateNote>()
+                
+                let note =
+                    { Id = Guid.NewGuid()
+                      Text = newNoteForm.NoteBody
+                      Sentiment = Some newNoteForm.Sentiment
+                      BtcPrice  = currentPrice
+                      Fiat = preferredFiat
+                      Date = DateTime.UtcNow }
+                    
+                do! Notes.createNote db userId note
+                
+                let withTriggers = withHxTriggerManyAfterSettle [
+                    "note-created", ""
+                    "showMessage", "Note Saved"
+                ]
+                
+                let model =
+                    { CurrentDate = DateTime.Now
+                      CurrentPrice = currentPrice
+                      Fiat = preferredFiat }
+                
+                return! (withTriggers >=> htmlView (Views.Partials.Forms.newNoteModal model)) next ctx      
+            }
+            
+    let noteDetails (noteId: Guid, userId: Guid) : HttpHandler =
+        fun next ctx ->
+            let db = ctx.GetService<PlebJournalDb>()
+            task {
+                let! note = Notes.getNote db userId noteId
+                if note.IsNone then
+                    return! RequestErrors.BAD_REQUEST () next ctx
+                else
+                    return! htmlView (Views.Partials.Forms.noteDetailsModal note.Value) next ctx
+            }
     
 module Api =
     let ``200 wma api`` (userId: Guid): HttpHandler =
@@ -728,7 +795,16 @@ module Api =
             let db = ctx.GetService<PlebJournalDb>()
             task {
                 let! preferredFiat = UserSettings.getPreferredFiat db userId
-                let! prices = Prices.Read.getPricesUntilDate db preferredFiat (DateTime.UtcNow.AddMonths(-6))
+                let! prices = Prices.Read.getPricesUntilDate db preferredFiat (DateTime.UtcNow.AddMonths(-1))
+                let! cp = CurrentPrice.Read.getCurrentPrice db preferredFiat
+                
+                let currentPrice = Price(
+                    Date = DateTime.UtcNow,
+                    BtcPrice = cp,
+                    Currency = preferredFiat.ToString()
+                )
+                
+                let prices = Array.append prices [| currentPrice |]
                 
                 let trace = {|
                     mode = "lines"

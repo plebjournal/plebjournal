@@ -3,10 +3,8 @@ const loadFiatValueChart = async (horizon) => {
   const { traces } = await fetch(`/api/fiat-value-chart-config?horizon=${horizonQuery}`).then(res => res.json());
   const chart = document.getElementById('fiat-value-chart');
   const layout = {
-    font: {
-      family: 'monospace'
-    },
     showLegend: true,
+    autosize: true,
     yaxis: {
       type: 'log',
       side: 'right',

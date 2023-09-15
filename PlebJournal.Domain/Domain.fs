@@ -1,6 +1,7 @@
 ﻿namespace Stacker
 
 open System
+open Microsoft.FSharp.Reflection
 
 module Domain =
     [<Measure>]
@@ -16,9 +17,6 @@ module Domain =
 
     let convertSatsToBtc (sats: decimal<sats>) = sats * btcPerSats
     let convertBtcToSats (btc: decimal<btc>) = btc * satsPerBtc
-
-    let convertSatsToBtcInt (sats: int<sats>) =
-        (decimal sats) * (1.0m<sats>) |> convertSatsToBtc
 
     let convertSatsToBtcInt64 (sats: int64<sats>) =
         (decimal sats) * (1.0m<sats>) |> convertSatsToBtc
@@ -62,6 +60,53 @@ module Domain =
             | "EUR" -> Some EUR
             | _ -> None
 
+    type Sentiment =
+        | Resilient
+        | Patient
+        | Bored
+        | Hopeful
+        | Optimistic
+        | FOMO
+        | Euphoric
+        | Skeptical
+        | Cautious
+        | Regretful
+        | Anxious
+        | Panic
+        | Exhausted
+        
+        static member AllCases =
+            FSharpType.GetUnionCases(typeof<Sentiment>)
+            |> Array.map (fun a -> a.Name)
+            |> Array.toList
+        
+        static member Parse(str: string) =
+            match str with
+            | null -> None
+            | "" -> None
+            | "Resilient" -> Some Resilient
+            | "Patient" -> Some Patient
+            | "Bored" -> Some Bored
+            | "Hopeful" -> Some Hopeful
+            | "Optimistic" ->  Some Optimistic
+            | "FOMO" ->  Some FOMO
+            | "Euphoric" -> Some Euphoric
+            | "Skeptical" -> Some Skeptical
+            | "Cautious" -> Some Cautious
+            | "Regretful" -> Some Regretful
+            | "Anxious" -> Some Anxious
+            | "Panic" -> Some Panic
+            | "Exhausted" -> Some Exhausted
+            | _ -> None
+    
+    type Note =
+        { Id: Guid
+          Text: string
+          Sentiment: Sentiment option
+          BtcPrice: decimal
+          Fiat: Fiat
+          Date: DateTime }    
+    
     type FiatAmount =
         { Amount: decimal
           Currency: Fiat }
@@ -139,3 +184,4 @@ module Domain =
                 let perCoin = a.Amount / btcAmount |> decimal
                 (perCoin, a.Currency) |> Some
             | None -> None
+   
