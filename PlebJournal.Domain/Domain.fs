@@ -63,6 +63,7 @@ module Domain =
     type Sentiment =
         | Resilient
         | Patient
+        | Bored
         | Hopeful
         | Optimistic
         | FOMO
@@ -85,6 +86,7 @@ module Domain =
             | "" -> None
             | "Resilient" -> Some Resilient
             | "Patient" -> Some Patient
+            | "Bored" -> Some Bored
             | "Hopeful" -> Some Hopeful
             | "Optimistic" ->  Some Optimistic
             | "FOMO" ->  Some FOMO
@@ -96,7 +98,6 @@ module Domain =
             | "Panic" -> Some Panic
             | "Exhausted" -> Some Exhausted
             | _ -> None
-            
     
     type Note =
         { Id: Guid

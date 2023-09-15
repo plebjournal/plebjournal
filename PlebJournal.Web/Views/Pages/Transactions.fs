@@ -24,14 +24,6 @@ let transactionsPage =
                     str "Enter Transaction"
                 ]
                 button [
-                    _class "btn btn-primary d-sm-none"
-                    _hxTrigger "click"
-                    _hxTarget "#modal-container"
-                    _hxGet "/bought"                    
-                ] [
-                    i [ _class "ti ti-plus" ] []
-                ]
-                button [
                     _class "btn d-none d-sm-inline"
                     _hxTarget "#modal-container"
                     _hxGet "/import"
