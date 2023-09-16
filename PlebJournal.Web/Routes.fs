@@ -103,6 +103,10 @@ let publicRoutes = router {
     get "/create-account" Handlers.Pages.createAccount
     post "/create-account" Handlers.Form.createAccount
     get "/login" Handlers.Pages.login
+    get "/login/lnauth" Handlers.Pages.lnAuth
+    get "/login/lnauth/qrcode" Handlers.Partials.lnAuthQrCode
+    get "/login/lnauth/callback" Handlers.Form.lnAuthCallback
+    get "/login/lnauth/check" Handlers.Form.lnAuthCheck
     post "/login" Handlers.Form.login
     get "/nav/user" Handlers.Partials.userNav
 }

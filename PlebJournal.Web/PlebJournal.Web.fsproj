@@ -39,6 +39,7 @@
         <Compile Include="Views\Partials\Charts.fs" />
         <Compile Include="Views\Partials\Epochs.fs" />
         <Compile Include="Views\Partials\Notes.fs" />
+        <Compile Include="Views\Partials\LnAuthQrCode.fs" />
         <Compile Include="Handlers.fs" />
         <Compile Include="Routes.fs" />
         <Compile Include="Program.fs" />
@@ -57,9 +58,13 @@
       <PackageReference Include="FsToolkit.ErrorHandling" Version="4.2.1" />
       <PackageReference Include="Giraffe.Htmx" Version="1.8.4" />
       <PackageReference Include="Giraffe.ViewEngine.Htmx" Version="1.8.4" />
+      <PackageReference Include="LNURL" Version="0.0.31" />
+      <PackageReference Include="NBitcoin" Version="7.0.30" />
+      <PackageReference Include="QRCoder" Version="1.4.3" />
       <PackageReference Include="Quartz" Version="3.5.0" />
       <PackageReference Include="Quartz.AspNetCore" Version="3.5.0" />
       <PackageReference Include="Saturn" Version="0.16.1" />
+      <PackageReference Include="System.Runtime.Caching" Version="8.0.0-rc.1.23419.4" />
     </ItemGroup>
 
     <ItemGroup>

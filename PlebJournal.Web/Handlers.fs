@@ -6,8 +6,14 @@ open System.Security.Claims
 open FParsec.CharParsers
 open Giraffe
 open Giraffe.Htmx
+open LNURL
+open Microsoft.AspNetCore.Http
 open Microsoft.AspNetCore.Identity
 open Microsoft.Extensions.Logging
+open QRCoder
+open NBitcoin
+open NBitcoin.Crypto
+open NBitcoin.DataEncoders
 open PlebJournal.Db
 open PlebJournal.Db.Models
 open Stacker
@@ -16,7 +22,7 @@ open Domain
 open Stacker.Web
 open Models
 open FsToolkit.ErrorHandling
-open Stacker.Web.Models
+open Stacker.Web.Config
 open Stacker.Web.Views
 open Stacker.Web.Views.Pages
 open Repository
@@ -41,6 +47,9 @@ module Pages =
     
     let login: HttpHandler =
         Login.loginPage |> Layout.withLayout |> htmlView
+        
+    let lnAuth: HttpHandler =
+        Login.lnAuthPage |> Layout.withLayout |> htmlView
         
     let createAccount: HttpHandler =
         CreateAccount.createAccountPage |> Layout.withLayout |> htmlView
@@ -68,6 +77,7 @@ module Partials =
                     let claim = ctx.User.Claims |> Seq.tryFind (fun c -> c.Type = ClaimTypes.Name)
                     claim |> Option.map (fun c -> c.Value)
             htmlView (Partials.User.userNav user) next ctx
+    
     let boughtBitcoinForm: HttpHandler =
         htmlView Partials.Forms.boughtBtcModal
         
@@ -165,6 +175,24 @@ module Partials =
                 
                 return! htmlView (Partials.Notes.notesList notes) next ctx
             }
+            
+    let lnAuthQrCode : HttpHandler =
+        fun next ctx ->
+            let k1 = Encoders.Hex.EncodeData(RandomUtils.GetBytes(32))
+            
+            do LnUrlAuth.addK1 k1
+            
+            let site = config["Site"]
+            let lnUrlEndpoint = Uri($"{site}/login/lnauth/callback?tag=login&k1={k1}&action=login");
+            let lnUrl = LNURL.EncodeUri(lnUrlEndpoint, "login", true).ToString().ToUpperInvariant()
+            
+            let qr = (new QRCodeGenerator()).CreateQrCode(lnUrl, QRCodeGenerator.ECCLevel.Q)
+            let png = new PngByteQRCode(qr)
+            let bytes = png.GetGraphic(5, [| 0uy; 0uy; 0uy; 255uy |], [| 0xf5uy; 0xf5uy; 0xf7uy; 255uy  |])
+            let qrCode =
+                { QrCodeData = Convert.ToBase64String(bytes)
+                  K1 = k1 }
+            htmlView (Partials.LnAuthQrCode.lnAuthQrCode qrCode) next ctx
 
     let balance (userId: Guid): HttpHandler =
         fun next ctx ->
@@ -312,6 +340,60 @@ module Form =
                     | false -> 
                         return! backToLoginForm "Invalid username/password" next ctx
             }
+        
+    let lnAuthCallback : HttpHandler =
+        let verifyLnAuthReq (ctx: HttpContext) =
+            result {
+                let! signature = ctx.GetQueryStringValue "sig"
+                let! k1 =
+                    ctx.GetQueryStringValue "k1"
+                let! _ =
+                    LnUrlAuth.exists k1
+                    |> fun exists -> if exists then Ok true else Error "Missing k1"
+                let! key = ctx.GetQueryStringValue "key"
+                
+                let k1Bytes = Encoders.Hex.DecodeData k1
+                let ecdsaSig = ECDSASignature.FromDER(Encoders.Hex.DecodeData(signature))
+                let success = LNAuthRequest.VerifyChallenge(ecdsaSig, PubKey(key), k1Bytes)
+                return (success, key, k1)
+            }
+            
+        fun next ctx ->
+            let db = ctx.GetService<PlebJournalDb>()
+            let plebUsers = ctx.GetService<UserManager<PlebUser>>()
+            match verifyLnAuthReq ctx with
+            | Ok (success, key, k1) when success = true ->
+                task {
+                    let! plebUser = PlebUsers.findByUsername db key
+                    if plebUser.IsSome then
+                        do! LnUrlAuth.upsertToken db plebUser.Value.Id k1
+                    else
+                        let newUser = PlebUser(key)
+                        let! _ = plebUsers.CreateAsync(newUser)
+                        do! LnUrlAuth.upsertToken db newUser.Id k1
+                    do LnUrlAuth.removeK1 k1
+                    return! json {| status = "OK" |} next ctx    
+                }
+            | _ -> RequestErrors.BAD_REQUEST {| status = "ERROR"; reason = "bad request" |} next ctx
+    
+    let lnAuthCheck : HttpHandler =
+        fun next ctx ->
+            let db = ctx.GetService<PlebJournalDb>()
+            let signInManager = ctx.GetService<SignInManager<PlebUser>>()
+            task {
+                let k1 = ctx.TryGetQueryStringValue "k1" |> Option.defaultValue ""
+                
+                let isInCache = LnUrlAuth.exists k1
+                let! token = LnUrlAuth.tryFindToken db k1
+                
+                if (not isInCache && token.IsSome) then
+                    let! user = db.Users.FindAsync(token.Value.UserId)
+                    do! signInManager.SignInAsync(user, false)
+                    let welcome = withHxRedirect "/" >=> json ()
+                    return! welcome next ctx
+                else
+                    return! Successful.OK () next ctx
+            }
     
     let upload (userId: Guid) : HttpHandler =
         fun next ctx ->
@@ -343,7 +425,7 @@ module Form =
                     "showMessage", $"Imported {txs.Length} transactions"
                 ]
                 return! (withTriggers >=> htmlView (Views.Partials.Forms.importForm errs)) next ctx
-        }
+            }
     
     let createTx (userId: Guid): HttpHandler =
         let createBtcAmount (createTx: CreateBtcTransaction) =

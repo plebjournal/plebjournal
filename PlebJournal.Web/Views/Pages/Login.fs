@@ -55,12 +55,24 @@ let loginPage =
                     div [ _class "card-body" ] [
                         loginForm None
                         div [ _class "row" ] [
-                            div [ _class "col-sm-6" ] [
+                            div [ _class "col" ] [
                                 a [ _href "/create-account" ] [ str "Create Account" ]
+                            ]
+                            div [ _class "col-auto" ] [
+                                a [ _href "/login/lnauth" ] [ str "Login with Lightning" ]
                             ]
                         ]
                     ]
                 ]    
             ]
         ]
+    ]
+    
+let lnAuthPage =
+    [        
+        div [
+            _hxGet "/login/lnauth/qrcode"
+            _hxTrigger "revealed"
+            _hxSwap "outerHTML"
+        ] []
     ]
