@@ -2,6 +2,7 @@ module Stacker.Web.Repository
 
 open System
 open System.Linq
+open Microsoft.AspNetCore.Identity
 open PlebJournal.Db
 open Microsoft.EntityFrameworkCore
 open PlebJournal.Db.Models
@@ -383,4 +384,70 @@ module Notes =
         task {
             let! note = db.Notes.FirstOrDefaultAsync(fun n -> n.Id = noteId && n.PlebUser.Id = userId)
             return if note = null then None else Some (fromDao note)
+        }
+        
+module LnUrlAuth =
+    open System.Runtime.Caching
+    
+    let private cache = MemoryCache.Default
+    
+    let addK1 (k1: string) =
+        let absoluteExpiration = DateTimeOffset.Now.AddHours(1)
+        let _ = cache.Add(k1, k1, absoluteExpiration)
+        ()
+        
+    let getK1(k1: string) =
+        let res = cache.Get(k1)
+        if res = null then None else
+            res :?> string |> Some
+            
+    let removeK1(k1: string) =
+        let _ = cache.Remove(k1)
+        ()
+            
+    let exists(k1: string) =
+        k1 |> getK1 |> Option.isSome
+        
+    let private K1_TOKEN_NAME = "k1"
+    let private LN_URL_AUTH_PROVIDER = "LnUrlAuth"
+    
+    let upsertToken (db: PlebJournalDb) (userId: Guid) (k1: string) =
+        task {
+            let! existing =
+                db.UserTokens
+                    .Where(fun ut -> ut.UserId = userId && ut.Name = K1_TOKEN_NAME)
+                    .FirstOrDefaultAsync()
+            
+            if existing = null then
+                let token = IdentityUserToken<Guid>(
+                    UserId = userId,
+                    Name = K1_TOKEN_NAME,
+                    Value = k1,
+                    LoginProvider = LN_URL_AUTH_PROVIDER
+                )
+                let! _ = db.UserTokens.AddAsync(token)
+                ()
+            else
+                existing.Value <- k1
+            
+            let! _ = db.SaveChangesAsync()
+            return ()
+        }
+        
+    let tryFindToken (db: PlebJournalDb) (k1: string) =
+        task {
+            let! token = 
+                db.UserTokens
+                    .Where(fun ut -> ut.Name = LN_URL_AUTH_PROVIDER && ut.Value = k1)
+                    .FirstOrDefaultAsync()
+            return if token = null then None else Some token
+        }
+        
+module PlebUsers =
+    
+    let findByUsername (db: PlebJournalDb) (username: string) =
+        task {
+            let! user =
+                db.Users.FirstOrDefaultAsync(fun user -> user.UserName = username)
+            return if user = null then None else Some user 
         }

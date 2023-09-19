@@ -51,6 +51,10 @@ type Login =
     { Username: string
       Password: string }
     
+type LnAuthQrCode =
+    { QrCodeData: string
+      K1: string }
+    
 [<CLIMutable>]   
 type Formula =
     { Formula: string

@@ -234,7 +234,7 @@ let newNoteModal (newNote: NewNoteForm) =
             _class "modal show modal-blur"
             _style "display:block;"
             _tabindex "-1" ] [
-                div [ _class "modal-dialog" ] [
+                div [ _class "modal-dialog modal-lg" ] [
                     div [
                         _class "modal-content";
                     ] [
@@ -297,7 +297,7 @@ let noteDetailsModal (note: Note) =
             _style "display:block;"
             _tabindex "-1"
         ] [
-            div [ _class "modal-dialog" ] [
+            div [ _class "modal-dialog modal-lg" ] [
                 div [ _class "modal-content"; ] [
                     div [ _class "modal-header" ] [
                         h1 [ _class "modal-title" ] [ note.Date.ToString("yyyy-MM-dd") |> str ]
@@ -635,7 +635,7 @@ let txDetails (t: Transaction) (change: Change option) =
                                             | Some (Decrease percent) ->
                                                 div [] [ str $"{percent}%%" ]
                                         ]
-                                    ]    
+                                    ]
                                 ]
                             ]
                         ]
