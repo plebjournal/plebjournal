@@ -23,7 +23,8 @@ let lnAuthQrCode (qrCode: LnAuthQrCode) =
                 ]
             ]
         ]
-        div [ _class "col-sm-0" ] []
+        // Checks if this auth session has completed.
+        // Server response will redirect upon success.
         div [
             _hxGet $"/login/lnauth/check?k1={qrCode.K1}"
             _hxTrigger "every 2s"
