@@ -386,7 +386,9 @@ module Form =
                 let isInCache = LnUrlAuth.exists k1
                 let! token = LnUrlAuth.tryFindToken db k1
                 
-                if (not isInCache && token.IsSome) then
+                let loginSessionComplete = (not isInCache && token.IsSome)
+                
+                if loginSessionComplete then
                     let! user = db.Users.FindAsync(token.Value.UserId)
                     do! signInManager.SignInAsync(user, false)
                     let welcome = withHxRedirect "/" >=> json ()
