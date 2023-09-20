@@ -438,7 +438,7 @@ module LnUrlAuth =
         task {
             let! token = 
                 db.UserTokens
-                    .Where(fun ut -> ut.Name = LN_URL_AUTH_PROVIDER && ut.Value = k1)
+                    .Where(fun ut -> ut.Name = K1_TOKEN_NAME && ut.Value = k1)
                     .FirstOrDefaultAsync()
             return if token = null then None else Some token
         }
