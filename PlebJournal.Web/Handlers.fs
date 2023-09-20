@@ -361,8 +361,10 @@ module Form =
         fun next ctx ->
             let db = ctx.GetService<PlebJournalDb>()
             let plebUsers = ctx.GetService<UserManager<PlebUser>>()
+            let logger = ctx.GetLogger("LNURL Auth Callback")
             match verifyLnAuthReq ctx with
             | Ok (success, key, k1) when success = true ->
+                logger.LogInformation("Successfully verified {pubKey} with LNURL AUTH", key)
                 task {
                     let! plebUser = PlebUsers.findByUsername db key
                     if plebUser.IsSome then
@@ -379,6 +381,7 @@ module Form =
     let lnAuthCheck : HttpHandler =
         fun next ctx ->
             let db = ctx.GetService<PlebJournalDb>()
+            let logger = ctx.GetLogger("LNURL Auth Check")
             let signInManager = ctx.GetService<SignInManager<PlebUser>>()
             task {
                 let k1 = ctx.TryGetQueryStringValue "k1" |> Option.defaultValue ""
@@ -387,10 +390,10 @@ module Form =
                 let! token = LnUrlAuth.tryFindToken db k1
                 
                 let loginSessionComplete = (not isInCache && token.IsSome)
-                
                 if loginSessionComplete then
                     let! user = db.Users.FindAsync(token.Value.UserId)
                     do! signInManager.SignInAsync(user, false)
+                    logger.LogInformation("User {userName} Signed in with LNURL AUTH", user.UserName)
                     let welcome = withHxRedirect "/" >=> json ()
                     return! welcome next ctx
                 else
