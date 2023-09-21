@@ -72,7 +72,13 @@ type DcaCalculation =
       Cadence: Cadence
       Duration: int
       DurationUnit: Duration }
-    
+
+type UserSettingsVm =
+    { UserId: Guid
+      UserName: string
+      PreferredFiat: Fiat
+      Timezone: string }
+
 [<CLIMutable>]
 type UpdateSettings = { Fiat: Fiat }
 

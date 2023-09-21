@@ -65,7 +65,13 @@ module Partials =
         fun next ctx -> task {
             let db = ctx.GetService<PlebJournalDb>()
             let! preferredFiat = UserSettings.getPreferredFiat db userId
-            return! htmlView (Partials.Forms.userSettings preferredFiat) next ctx
+            let! user = PlebUsers.findById db userId
+            let vm =
+                { UserId = userId
+                  UserName = user.Value.UserName
+                  PreferredFiat = preferredFiat
+                  Timezone = "" }
+            return! htmlView (Partials.Forms.userSettings vm) next ctx
         }
             
     let userNav: HttpHandler =
@@ -79,7 +85,7 @@ module Partials =
             htmlView (Partials.User.userNav user) next ctx
     
     let boughtBitcoinForm: HttpHandler =
-        htmlView Partials.Forms.boughtBtcModal
+        htmlView Partials.Forms.newTxModal
         
     let notesForm (userId: Guid): HttpHandler =
         fun next ctx ->
@@ -597,8 +603,13 @@ module Form =
             
             do! UserSettings.setPreferredFiat db userId form.Fiat
             let! preferredFiat = UserSettings.getPreferredFiat db userId
-
-            return! htmlView (Partials.Forms.userSettings preferredFiat) next ctx
+            let! user = PlebUsers.findById db userId
+            let vm =
+                { UserId = userId
+                  UserName = user.Value.UserName
+                  PreferredFiat = preferredFiat
+                  Timezone = "" }
+            return! htmlView (Partials.Forms.userSettings vm) next ctx
         }
         
     let createNote (userId: Guid) : HttpHandler =

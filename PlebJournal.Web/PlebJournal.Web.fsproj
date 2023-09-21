@@ -6,6 +6,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <None Include="Scripts\scratch.fsx" />
         <Compile Include="Config.fs" />
         <Compile Include="Json.fs" />
         <None Include="Scripts\InvestigateMA.fsx" />

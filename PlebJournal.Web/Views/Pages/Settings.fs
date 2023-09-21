@@ -10,15 +10,11 @@ let settingsPage = [
         ]
     ]
     
-    div [ _class "row" ] [
-        div [ _class "col col-sm-12 col-md-4" ] [
-            div [ _class "card" ] [
-                div [
-                    _class "card-body"
-                    _hxGet "/settings/user-settings"
-                    _hxTrigger "revealed"
-                ] []
-            ]
-        ]
+    div [ _class "card" ] [
+        div [
+            _class "card-body"
+            _hxGet "/settings/user-settings"
+            _hxTrigger "revealed"
+        ] []
     ]
 ]

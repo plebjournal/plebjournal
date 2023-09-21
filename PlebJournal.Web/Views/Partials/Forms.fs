@@ -76,50 +76,12 @@ let newTxsForm (errs: string list) =
         [ _hxPost "/bought"
           _hxTarget "this"
           _hxSwap "outerHTML" ]
-            [
-              div [ _class "row" ] (errs |> List.map (fun e -> div [ _class "col-sm-12 text-red" ] [ str e ]))
-              div
-                  [ _class "row mb-3" ]
-                  [
-                    div [ _class "col-sm-12 col-md-4" ] [
-                        label [ _class "form-label"; _required;  ] [ str "Tx" ]
-                        select [ _type "button"; _name "Type"; _required; _class "form-select" ] [
-                            option [ _value "Buy"; _selected ] [ str "Buy" ]
-                            option [ _value "Sell"; ] [ str "Sell" ]
-                            option [ _value "Income"; ] [ str "Income" ]
-                            option [ _value "Spend"; ] [ str "Spend" ]
-                        ]
-                    ]
-                    
-                    div
-                        [ _class "col-sm-12 col-md-6" ]
-                        [
-                          label [ _class "form-label"; _required; _min "0" ] [ str "Btc Amount" ]
-                          div [ _class "input-group" ] [
-                              input [ _name "btcAmount"; _required; _class "form-control" ]
-                              select [ _name "btcUnit"; _required; _class "form-select" ] [
-                                  option [ _value "Btc"; _selected ] [ str "BTC" ]
-                                  option [ _value "Sats"; ] [ str "SATS" ]
-                              ]
-                          ]
-                        ]
-                  ]
-              div [ _class "row mb-3" ] [
-                    div
-                        [ _class "col-sm-12 col-md-4" ]
-                        [ label [ _class "form-label"; _required; _min "0" ] [ str "Fiat Amount" ]
-                          input [ _name "fiatAmount"; _required; _class "form-control" ] ]
-                    div
-                        [ _class "col-sm-12 col-md-4" ]
-                        [ label [ _class "form-label"; _required; _min "0" ] [ str "Fiat Currency" ]
-                          select
-                              [ _type "text"; _name "fiat"; _required; _class "form-select" ]
-                              [ option [ _value "CAD" ] [ str "CAD" ]
-                                option [ _value "USD" ] [ str "USD" ] ] ] ]
-
-              div
-                  [ _class "mb-3" ]
-                  [ label [ _class "form-label" ] [ str "Date" ]
+        [
+            div [ _class "row" ] (errs |> List.map (fun e -> div [ _class "col-sm-12 text-red" ] [ str e ]))
+            
+            div [ _class "mb-3" ] [
+                div [ _class "col-sm-12" ] [
+                    label [ _class "form-label" ] [ str "Date and Time" ]
                     input [ _type "hidden"; _name "timeZoneOffset"; _id "time-zone-offset"; _value "" ]
                     input [
                         _type "datetime-local"
@@ -127,25 +89,70 @@ let newTxsForm (errs: string list) =
                         _required
                         _class "form-control"
                         _value (DateTime.Now.ToString("yyyy-MM-ddTHH:mm"))
-                    ] ]
+                        ]
+                ]
+            ]            
+            div
+                [ _class "row mb-3" ]
+                [
+                    div [ _class "col-sm-12" ] [
+                        label [ _class "form-label"; _required;  ] [ str "Transaction Type" ]
+                        select [ _name "Type"; _required; _class "form-select" ] [
+                            option [ _value "Buy"; _selected ] [ str "Buy" ]
+                            option [ _value "Sell"; ] [ str "Sell" ]
+                            option [ _value "Income"; ] [ str "Income" ]
+                            option [ _value "Spend"; ] [ str "Spend" ]
+                        ]
+                        div [ _class "form-text" ] [ str "The kind of transaction" ]
+                    ]
+                ]
+            div [ _class "row mb-3" ] [
+                div [ _class "col-sm-12" ] [
+                    label [ _class "form-label"; _required ] [ str "Bitcoin Units" ]
+                    select [ _name "btcUnit"; _required; _class "form-select" ] [
+                          option [ _value "Btc"; _selected ] [ str "BTC" ]
+                          option [ _value "Sats"; ] [ str "SATS" ]
+                    ]
+                    div [ _class "form-text" ] [ str "Btc or Sats" ]
+                ]
+            ]
+            div [ _class "row mb-3" ] [
+                div [ _class "col-sm-12" ] [
+                    label [ _class "form-label"; _required; _min "0" ] [ str "BTC Amount" ]
+                    input [ _name "btcAmount"; _required; _class "form-control" ]
+                    div [ _class "form-text" ] [ str "Amount of BTC involved in the transaction" ]
+                ]
+            ]
+            hr []
+            div [ _class "row mb-3" ] [
+                div [ _class "col-sm-12" ] [
+                    label [ _class "form-label"; _required; _min "0" ] [ str "Fiat Amount" ]
+                    input [ _name "fiatAmount"; _required; _class "form-control" ]
+                    div [ _class "form-text" ] [ str "Amount of Fiat involved in the transaction" ]
+                ]
+            ]
+            div [ _class "row mb-3" ] [
+                div [ _class "col-sm-12" ] [
+                    label [ _class "form-label"; _required; _min "0" ] [ str "Fiat Currency" ]
+                    select [ _type "text"; _name "fiat"; _required; _class "form-select" ] [
+                        option [ _value "CAD" ] [ str "CAD" ]
+                        option [ _value "USD" ] [ str "USD" ]
+                    ]
+                    div [ _class "form-text" ] [ str "Fiat currency involved in the transaction" ]
+                ]
+            ]
 
-              div
-                  [ _class "row" ]
-                  [ div
-                        [ _class "col" ]
-                        [ button
-                              [ _class "btn btn-secondary"; _onclick "closeModal()" ]
-                              [ str "Cancel" ] ]
-                    div
-                        [ _class "col-auto" ]
-                        [ button
-                              [ _type "submit"
-                                _class "btn btn-success"
-                                ]
-                              [ str "Save" ]
-                          ] ] ]
+            div [ _class "row" ] [
+                div [ _class "col" ] [
+                    button  [ _class "btn btn-secondary"; _onclick "closeModal()" ]  [ str "Cancel" ]
+                ]
+                div [ _class "col-auto" ] [
+                    button [ _type "submit"; _class "btn btn-success" ] [ str "Save" ]
+                ]
+            ]
+        ]
     
-let boughtBtcModal =
+let newTxModal =
     div [] [
         div [
             _class "modal modal-backdrop fade show"
@@ -160,7 +167,7 @@ let boughtBtcModal =
                         [ _class "modal-content"; ]
                         [
                             div [ _class "modal-header" ] [
-                                h1 [ _class "modal-title" ] [ str "Enter Transaction" ]
+                                h1 [ _class "modal-title" ] [ str "New Transaction" ]
                                 button [ _type "button"; _class "btn-close"; _onclick "closeModal()" ] []
                             ]
                             div [ _class "modal-body" ] [
@@ -645,24 +652,51 @@ let txDetails (t: Transaction) (change: Change option) =
     ]
     
     
-let userSettings (preferredFiat: Fiat) =
+let userSettings (settings: UserSettingsVm) =
     let fiatOption (fiatOption: string) (preferredFiat: Fiat) =
         let attrs = [ _value fiatOption; ] @ (if preferredFiat.ToString() = fiatOption then [ _selected ] else []) 
-        option attrs [ str fiatOption ]    
+        option attrs [ str fiatOption ]
+        
+    let tzs =
+        TimeZoneInfo.GetSystemTimeZones()
+        |> Seq.map (fun tz -> (tz.Id, tz.DisplayName))
+        |> Seq.toList
     
     form [
         _hxPost "/settings/user-settings"
         _hxSwap "outerHTML"
         _hxTarget "this"
         ] [
-        div [ _class "mb-3" ] [
-            label [ _class "form-label required"; _required;  ] [ str "Fiat" ]
-            select [ _type "button"; _name "Fiat"; _required; _class "form-select" ] [
-                fiatOption "USD" preferredFiat
-                fiatOption "CAD" preferredFiat
-                fiatOption "EUR" preferredFiat
+        div [ _class "row mb-3" ] [
+            div [ _class "col" ] [
+                span [ _class "avatar avatar-xl"; _style $"background-image: url(https://robohash.org/{settings.UserName}.png)" ] [ ]
+                div [ _class "form-text" ] [ str "This unique image is generated from your username" ]
             ]
-        ]  
+        ]
+        div [ _class "row mb-3" ] [
+            div [ _class "col-sm-12 col-md-4" ] [
+                label [ _class "form-label required"; _required;  ] [ str "Username" ]
+                input [ _class "form-control"; _disabled; _value settings.UserName ]
+            ]
+        ]
+        
+        div [ _class "row mb-3" ] [
+            div [ _class "col-sm-12 col-md-3" ] [
+                label [ _class "form-label required"; _required;  ] [ str "Preferred Fiat" ]
+                select [ _type "button"; _name "Fiat"; _required; _class "form-select" ] [
+                    fiatOption "USD" settings.PreferredFiat
+                    fiatOption "CAD" settings.PreferredFiat
+                    fiatOption "EUR" settings.PreferredFiat
+                ]
+            ]
+        ]
+        div [ _class "row mb-3" ] [
+            div [ _class "col-sm-12 col-md-4" ] [
+                label [ _class "form-label required"; _required;  ] [ str "Timezone" ]
+                select [ _type "button"; _name "Timezone"; _required; _class "form-select" ]
+                    (tzs |> List.map (fun (id, name) -> option [ _value id ] [ str name ] ))
+            ]
+        ]
         div [ _class "row mb-3" ] [
             div [ _class "loading-spinner"; _class "col" ] [
                 div [ _class "spinner-border text-blue"; ] []

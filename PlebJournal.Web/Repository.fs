@@ -302,6 +302,7 @@ module CurrentPrice =
 
 module UserSettings =
     let private preferredFiat = "PreferredFiat"
+    let private timezone = "Timezone"
     
     let getPreferredFiat (db: PlebJournalDb) (userId: Guid) = task {
         let! fiat =
@@ -310,6 +311,14 @@ module UserSettings =
                 .FirstOrDefaultAsync()
         if fiat = null then return USD else
         return Fiat.fromString(fiat.Value) |> Option.defaultValue USD
+    }
+    
+    let getTimezone (db: PlebJournalDb) (userId: Guid) = task {
+        let! tz =
+            db.UserSettings
+                .Where(fun us -> us.Name = timezone && us.PlebUser.Id = userId)
+                .FirstOrDefaultAsync()
+        if tz = null then return
     }
     
     let upsertSetting (db: PlebJournalDb) (userId: Guid) (name: string) (value: string) =
@@ -451,3 +460,9 @@ module PlebUsers =
                 db.Users.FirstOrDefaultAsync(fun user -> user.UserName = username)
             return if user = null then None else Some user 
         }
+        
+    let findById (db: PlebJournalDb) (id: Guid) =
+        task {
+            let! user = db.Users.FindAsync(id)
+            return if user = null then None else Some user 
+        }        
