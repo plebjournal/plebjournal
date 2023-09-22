@@ -1,6 +1,28 @@
-@model PlebJournal.Dto.Models.Balance
+@using PlebJournal.Templates
+@model PlebJournal.Dto.Models.CreateAccountErrors
+@{
+    
+}
 <h1>This is coming from a razor view library</h1>
-<button class="fun-button"></button>
-<p>
-    @Model.Total
-</p>
+<button class="fun-button">Click</button>
+<div class="bg-blue-700">
+    @if (Model.Username.IsSome())
+    {
+        var errors = Model.Username.Value;
+        <p>@errors</p>
+    }
+</div>
+
+<div class="bg-gray-200">
+    @if (Model.Password.IsSome())
+    {
+        <p>@Model.Password.Value</p>
+    }
+</div>
+
+<div class="bg-green-300">
+    @foreach (var msg in Model.Identity)
+    {
+        <p>@msg</p>
+    }
+</div>

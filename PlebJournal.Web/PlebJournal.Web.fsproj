@@ -41,6 +41,9 @@
         <Compile Include="Handlers.fs" />
         <Compile Include="Routes.fs" />
         <Compile Include="Program.fs" />
+        <Content Update="wwwroot\css\output.css">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
     </ItemGroup>
 
     <ItemGroup>

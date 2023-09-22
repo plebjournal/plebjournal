@@ -4,8 +4,21 @@ open System
 open Stacker.Calculate
 open Stacker.Domain
 open Stacker.GenerateSeries
-//open Microsoft.AspNetCore.Http
 
+module Interop =
+   let string_toNullable (aO : Option<string>) =
+      match aO with
+      | Some s -> s
+      | None -> null
+      
+   let toNullable (aO : Option<'a>) =
+      match aO with
+      | None   -> System.Nullable<_>()
+      | Some a -> System.Nullable<_>(a)
+      
+   let test (a) =
+       Option.toNullable a
+             
 type TxType = Buy | Sell | Income | Spend
 
 type BtcUnit = Btc | Sats
@@ -33,6 +46,11 @@ type EditBtcTransaction =
       Fiat: Fiat }
 
 type Balance = { Total: decimal<btc> }
+
+type ViewModel = {
+    Balance: Balance
+    Change: Change option
+}
 
 [<CLIMutable>]
 type CreateNewAccount =

@@ -8,6 +8,7 @@ open Giraffe
 open Giraffe.Htmx
 open Microsoft.AspNetCore.Identity
 open Microsoft.AspNetCore.Mvc
+open Microsoft.Extensions.Hosting
 open Microsoft.Extensions.Logging
 open PlebJournal.Db
 open Razor.Templating.Core
@@ -67,7 +68,10 @@ module Pages =
         
     let testing = Razor.render "Testing.cshtml"
     let testing2 =
-        let model : PlebJournal.Dto.Models.Balance = { Total = 123.0m<btc> }
+        let model : PlebJournal.Dto.Models.CreateAccountErrors =
+            { Password = Some "Your password isn't long enough"
+              Username = Some "Username already exists"
+              Identity = [] }
         Razor.render ("Testing.cshtml", model)
         
 module Partials =

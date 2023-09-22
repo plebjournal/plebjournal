@@ -1,1 +1,30 @@
-<h1>This should have no layout</h1>
+@using FSharp
+@using PlebJournal.Templates
+
+@model PlebJournal.Dto.Models.CreateAccountErrors
+@{
+    <h1>Hello</h1>   
+}
+
+@if (Model.Username.IsSome())
+{
+    <h1>Username Errors</h1>
+    <p>@Model.Username.Value</p>
+}
+
+@if (@Model.Password.IsSome())
+{
+    <h1>Errors found with password</h1>
+    <p>@Model.Password.Value</p>
+}
+
+@foreach (var item in @Model.Identity)
+{
+    @if (item != null)
+    {
+        <li>item</li>
+    }
+}
+
+
+
