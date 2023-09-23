@@ -3,6 +3,7 @@ module Stacker.Web.Repository
 open System
 open System.Linq
 open Microsoft.AspNetCore.Identity
+open NodaTime
 open PlebJournal.Db
 open Microsoft.EntityFrameworkCore
 open PlebJournal.Db.Models
@@ -21,6 +22,61 @@ module DcaCalculation =
           Duration = 5, Years
           Cadence = Weekly
           FiatAmount = 500m }
+
+module UserSettings =
+    let private preferredFiat = "PreferredFiat"
+    let private timezone = "Timezone"
+    
+    let getPreferredFiat (db: PlebJournalDb) (userId: Guid) = task {
+        let! fiat =
+            db.UserSettings
+                .Where(fun us -> us.Name = preferredFiat && us.PlebUser.Id = userId)
+                .FirstOrDefaultAsync()
+        if fiat = null then return USD else
+        return Fiat.fromString(fiat.Value) |> Option.defaultValue USD
+    }
+    
+    let getTimezone (db: PlebJournalDb) (userId: Guid) = task {
+        let! tz =
+            db.UserSettings
+                .Where(fun us -> us.Name = timezone && us.PlebUser.Id = userId)
+                .FirstOrDefaultAsync()
+        
+        if tz = null then return Timezone.defaultTimeZone else
+            return Timezone.parseTimezone tz.Value
+    }
+    
+    let upsertSetting (db: PlebJournalDb) (userId: Guid) (name: string) (value: string) =
+        task {
+            let! user = db.Users.FindAsync(userId)
+            let! existingSetting =
+                db.UserSettings
+                    .Where(fun us -> us.Name = name && us.PlebUser.Id = userId)
+                    .FirstOrDefaultAsync()
+            
+            if existingSetting = null then
+                let setting = UserSetting(
+                    Id = Guid.NewGuid(),
+                    PlebUser = user,
+                    Name = name,
+                    Value = value
+                )
+                let! _ = db.UserSettings.AddAsync(setting)
+                ()
+            else
+                existingSetting.Value <- value
+            
+            let! _ = db.SaveChangesAsync()
+            return ()
+        }
+        
+    let setPreferredFiat (db: PlebJournalDb) (userId: Guid) (fiat: Fiat) = task {
+        do! upsertSetting db userId preferredFiat (fiat.ToString())
+    }
+    
+    let setTimezone (db: PlebJournalDb) (userId: Guid) (tz: string) = task {
+        do! upsertSetting db userId timezone tz
+    }
 
 module Transactions =
     let txToDao (user: PlebUser) (tx: Transaction) =
@@ -72,21 +128,24 @@ module Transactions =
                 PlebUser = user
             )
 
-    let txFromDao (dao: Models.Transaction) =
+    let txFromDao (tz: DateTimeZone) (dao: Models.Transaction) =
         let parseFiat (fiat: string) =
             match Fiat.fromString fiat with
             | Some f -> f
             | None -> failwith $"Unsupported fiat currency {fiat}"
+            
+        let date =
+            Timezone.fromUtcToZone tz dao.Date
+            |> fun zdt -> zdt.ToDateTimeUnspecified()
 
         match dao.Type.ToLower() with
         | "buy" ->
             let fiat =
                 { Amount = dao.FiatAmount.Value
                   Currency = parseFiat dao.FiatCode }
-
             Buy
                 { Id = dao.Id
-                  Date = dao.Date
+                  Date = date
                   Amount = Btc(someBtc dao.BtcAmount)
                   Fiat = fiat }
         | "sell" ->
@@ -96,18 +155,18 @@ module Transactions =
 
             Sell
                 { Id = dao.Id
-                  Date = dao.Date
+                  Date = date
                   Amount = Btc(someBtc dao.BtcAmount)
                   Fiat = fiat }
         | "income" ->
             Income
                 { Id = dao.Id
-                  Date = dao.Date
+                  Date = date
                   Amount = Btc(someBtc dao.BtcAmount) }
         | "spend" ->
             Spend
                 { Id = dao.Id
-                  Date = dao.Date
+                  Date = date
                   Amount = Btc(someBtc dao.BtcAmount) }
         | _ -> failwith $"Unsupported transaction type {dao.Type}"
 
@@ -154,35 +213,37 @@ module Transactions =
         let getAllTxsForUser (db: PlebJournalDb) (userId: Guid) =
             try
                 task {
+                    let! tz = UserSettings.getTimezone db userId
                     let! txs =
                         db.Transactions
                             .Where(fun t -> t.PlebUser.Id = userId)
                             .OrderByDescending(fun t -> t.Date)
                             .ToArrayAsync()
 
-                    return txs |> Array.map txFromDao
+                    return txs |> Array.map (txFromDao tz)
                 }
             with ex ->
                 raise ex
 
         let getTxsForUserInHorizon (db: PlebJournalDb) (userId: Guid) (horizon: DateTime) =
             task {
+                let! tz = UserSettings.getTimezone db userId
                 let! txsDao =
                     db.Transactions
                         .Where(fun t -> t.PlebUser.Id = userId && t.Date >= horizon)
                         .OrderByDescending(fun t -> t.Date)
                         .ToArrayAsync()
 
-                return txsDao |> Array.map txFromDao
+                return txsDao |> Array.map (txFromDao tz)
             }
 
         let getTxById (db: PlebJournalDb) (userId: Guid) (txId: Guid) =
             task {
                 let! tx = db.Transactions.FirstOrDefaultAsync(fun t -> t.Id = txId && t.PlebUser.Id = userId)
-
+                let! tz = UserSettings.getTimezone db userId
                 match tx with
                 | null -> return None
-                | _ -> return txFromDao tx |> Some
+                | _ -> return txFromDao tz tx |> Some
             }
 
     module Delete =
@@ -299,55 +360,6 @@ module CurrentPrice =
 
                 return p.BtcPrice
             }
-
-module UserSettings =
-    let private preferredFiat = "PreferredFiat"
-    let private timezone = "Timezone"
-    
-    let getPreferredFiat (db: PlebJournalDb) (userId: Guid) = task {
-        let! fiat =
-            db.UserSettings
-                .Where(fun us -> us.Name = preferredFiat && us.PlebUser.Id = userId)
-                .FirstOrDefaultAsync()
-        if fiat = null then return USD else
-        return Fiat.fromString(fiat.Value) |> Option.defaultValue USD
-    }
-    
-    let getTimezone (db: PlebJournalDb) (userId: Guid) = task {
-        let! tz =
-            db.UserSettings
-                .Where(fun us -> us.Name = timezone && us.PlebUser.Id = userId)
-                .FirstOrDefaultAsync()
-        if tz = null then return
-    }
-    
-    let upsertSetting (db: PlebJournalDb) (userId: Guid) (name: string) (value: string) =
-        task {
-            let! user = db.Users.FindAsync(userId)
-            let! existingSetting =
-                db.UserSettings
-                    .Where(fun us -> us.Name = preferredFiat && us.PlebUser.Id = userId)
-                    .FirstOrDefaultAsync()
-            
-            if existingSetting = null then
-                let setting = UserSetting(
-                    Id = Guid.NewGuid(),
-                    PlebUser = user,
-                    Name = name,
-                    Value = value
-                )
-                let! _ = db.UserSettings.AddAsync(setting)
-                ()
-            else
-                existingSetting.Value <- value
-            
-            let! _ = db.SaveChangesAsync()
-            return ()
-        }
-        
-    let setPreferredFiat (db: PlebJournalDb) (userId: Guid) (fiat: Fiat) = task {
-        do! upsertSetting db userId preferredFiat (fiat.ToString())
-    }
     
 module Notes =
     let fromDao (note: PlebJournal.Db.Models.Note) =
