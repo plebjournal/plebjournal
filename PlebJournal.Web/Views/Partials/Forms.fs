@@ -72,6 +72,10 @@ let importForm (errs: string list) =
             ]
     
 let newTxsForm (vm: CreateTransactionVm) =
+    let fiatOption (fiatOption: string) (preferredFiat: Fiat) =
+        let attrs = [ _value fiatOption; ] @ (if preferredFiat.ToString() = fiatOption then [ _selected ] else []) 
+        option attrs [ str fiatOption ]
+    
     form
         [ _hxPost "/tx"
           _hxTarget "this"
@@ -135,8 +139,9 @@ let newTxsForm (vm: CreateTransactionVm) =
                 div [ _class "col-sm-12" ] [
                     label [ _class "form-label"; _required; _min "0" ] [ str "Fiat Currency" ]
                     select [ _type "text"; _name "fiat"; _required; _class "form-select" ] [
-                        option [ _value "CAD" ] [ str "CAD" ]
-                        option [ _value "USD" ] [ str "USD" ]
+                        fiatOption "CAD" vm.PreferredFiat
+                        fiatOption "USD" vm.PreferredFiat
+                        fiatOption "EUR" vm.PreferredFiat
                     ]
                     div [ _class "form-text" ] [ str "Fiat currency involved in the transaction" ]
                 ]
