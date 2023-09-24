@@ -362,18 +362,20 @@ module CurrentPrice =
             }
     
 module Notes =
-    let fromDao (note: PlebJournal.Db.Models.Note) =
+    let fromDao (tz: DateTimeZone) (note: PlebJournal.Db.Models.Note) =
         let parseFiat currency =
             match Fiat.fromString currency with
             | Some f -> f
             | None -> failwith $"Unsupported fiat currency {currency}"
+        
+        let date = Timezone.fromUtcToZone tz note.Created
         
         { Id = note.Id
           Text = note.Text
           Sentiment = Sentiment.Parse note.Sentiment
           BtcPrice = note.Price
           Fiat = parseFiat note.Currency
-          Date = note.Created.ToLocalTime() }
+          Date = date.ToDateTimeUnspecified() }
     
     let createNote (db: PlebJournalDb) (userId: Guid) (note: Note) =
         task {
@@ -398,13 +400,18 @@ module Notes =
                     .Where(fun n -> n.PlebUser.Id = userId && n.Text.Length < 2048)
                     .OrderByDescending(fun n -> n.Created)
                     .ToArrayAsync()
-            return notes |> Array.map fromDao 
+            let! tz = UserSettings.getTimezone db userId
+            return notes |> Array.map (fromDao tz) 
         }
         
     let getNote (db: PlebJournalDb) (userId: Guid) (noteId: Guid) =
         task {
             let! note = db.Notes.FirstOrDefaultAsync(fun n -> n.Id = noteId && n.PlebUser.Id = userId)
-            return if note = null then None else Some (fromDao note)
+            if note = null then
+                return None
+            else
+                let! tz = UserSettings.getTimezone db userId
+                return Some (fromDao tz note)
         }
         
 module LnUrlAuth =

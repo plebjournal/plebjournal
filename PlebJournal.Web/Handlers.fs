@@ -103,12 +103,15 @@ module Partials =
             let db = ctx.GetService<PlebJournalDb>()
             task {
                 let! preferredFiat = UserSettings.getPreferredFiat db userId
+                let! tz = UserSettings.getTimezone db userId
                 let! currentPrice = CurrentPrice.Read.getCurrentPrice db preferredFiat
+                
+                let now = Timezone.currentTimeIn tz 
                 
                 let model =
                     { CurrentPrice = currentPrice
                       Fiat = preferredFiat
-                      CurrentDate = DateTime.Now }
+                      CurrentDate = now.ToDateTimeUnspecified() }
                 return! htmlView (Partials.Forms.newNoteModal model) next ctx
             }
         
