@@ -15,16 +15,14 @@ let parseTimezone (zone: string) =
 let treatAsUserTimeZone (preferredUserZone: DateTimeZone) (dateTime: DateTime) =
     let dt = LocalDateTime.FromDateTime(dateTime)
     dt.InZoneLeniently(preferredUserZone)
-    
+
 let fromUtcToZone (preferredUserZone: DateTimeZone) (dateTime: DateTime) =
     let dt = Instant.FromDateTimeUtc(dateTime)
     dt.InZone(preferredUserZone)
-    
+
 let currentTimeIn (zone: DateTimeZone) =
     let now = Instant.FromDateTimeUtc(DateTime.UtcNow)
     now.InZone(zone)
-    
+
 let allZoneIds () =
-    db.ZoneLocations
-    |> Seq.map (fun z -> z.ZoneId)
-    |> Seq.toList
+    db.ZoneLocations |> Seq.map (fun z -> z.ZoneId) |> Seq.toList
