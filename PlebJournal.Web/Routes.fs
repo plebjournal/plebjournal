@@ -26,12 +26,12 @@ let logout : HttpHandler =
         task {
             let signInManager = ctx.GetService<SignInManager<PlebUser>>()
             do! signInManager.SignOutAsync()
-            return! redirectTo false "/" next ctx
+            return! redirectTo false "/login" next ctx
         }
 
 let secureRoutes = withAuth >=> router {
     // Pages
-    get "/" Handlers.Pages.index
+    get "/dashboard" Handlers.Pages.dashboard
     get "/transactions" Handlers.Pages.transactions
     get "/notes" Handlers.Pages.notes
     get "/blockchaininfo" Handlers.Pages.blockChainInfo
@@ -99,6 +99,7 @@ let secureRoutes = withAuth >=> router {
 }
 
 let publicRoutes = router {
+    get "/" Handlers.Pages.index
     get "/logout" logout
     get "/create-account" Handlers.Pages.createAccount
     post "/create-account" Handlers.Form.createAccount

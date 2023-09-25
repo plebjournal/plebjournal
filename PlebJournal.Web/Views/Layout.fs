@@ -70,7 +70,7 @@ let private navbar =
                                 [ li
                                       [ _class "nav-item" ]
                                       [ a
-                                            [ _class "nav-link"; _href "/" ]
+                                            [ _class "nav-link"; _href "/dashboard" ]
                                             [ span [ _class "nav-link-title" ] [ str "Dashboard" ] ] ]
                                   li
                                       [ _class "nav-item" ]
@@ -138,7 +138,22 @@ let withLayout (pageContent: XmlNode list) =
                     div [ _id "modal-container" ] []
                     div [ _class "page-body" ] [ div [ _class "container" ] pageContent ]
                     toast
-                    
+                ]
+            ]
+        ]
+    ]
+
+let withLayoutNoHeader (pageContent: XmlNode list) =
+    html [] [
+        htmlHead
+        body [
+            onload "configureHtmx()"
+        ] [
+            div [ _class "page" ] [
+                div [ _class "page-wrapper" ] [
+                    div [ _id "modal-container" ] []
+                    div [ _class "page-body" ] [ div [ _class "container" ] pageContent ]
+                    toast
                 ]
             ]
         ]

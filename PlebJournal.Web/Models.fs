@@ -49,7 +49,8 @@ type CreateAccountErrors =
 [<CLIMutable>]
 type Login =
     { Username: string
-      Password: string }
+      Password: string
+      Remember: bool option }
     
 type LnAuthQrCode =
     { QrCodeData: string
