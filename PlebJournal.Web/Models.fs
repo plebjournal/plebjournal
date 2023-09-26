@@ -10,6 +10,11 @@ type TxType = Buy | Sell | Income | Spend
 
 type BtcUnit = Btc | Sats
 
+type CreateTransactionVm =
+    { Now: DateTime
+      PreferredFiat: Fiat
+      Errors: string list }
+
 [<CLIMutable>]
 type CreateBtcTransaction =
     { Type: TxType
@@ -17,7 +22,6 @@ type CreateBtcTransaction =
       BtcUnit: BtcUnit
       FiatAmount: decimal
       Date: DateTime
-      TimeZoneOffset: int
       Fiat: Fiat }
 
 [<CLIMutable>]
@@ -72,9 +76,18 @@ type DcaCalculation =
       Cadence: Cadence
       Duration: int
       DurationUnit: Duration }
-    
+
+type UserSettingsVm =
+    { UserId: Guid
+      UserName: string
+      PreferredFiat: Fiat
+      AllZones: string list
+      Timezone: string }
+
 [<CLIMutable>]
-type UpdateSettings = { Fiat: Fiat }
+type UpdateSettings =
+    { Fiat: Fiat
+      Timezone: string }
 
 [<CLIMutable>]
 type CreateNote =

@@ -45,14 +45,14 @@ let secureRoutes = withAuth >=> router {
     post "/settings/user-settings" (withUserId Handlers.Form.updateSettings)
     
     // Transactions
-    get "/bought" Handlers.Partials.boughtBitcoinForm
+    get "/tx/new" (withUserId Handlers.Partials.createTransaction)
+    post "/tx" (withUserId Handlers.Form.createTx)
     getf "/tx/edit/%O" (fun (txId: Guid) -> withUserId (fun userId -> Handlers.Partials.editForm(txId, userId)))
     putf "/tx/edit/%O" (fun (txId: Guid) -> withUserId(fun userId -> Handlers.Form.editTx(txId, userId)))
     getf "/tx/details/%O" (fun (txId: Guid) -> withUserId (fun userId -> Handlers.Partials.txDetails(txId, userId)))
     getf "/tx/delete/%O" (fun (txId: Guid) -> withUserId (fun userId -> Handlers.Partials.deleteForm (txId, userId)))
     deletef "/tx/delete/%O" (fun (txId: Guid) -> withUserId (fun userId -> Handlers.Form.deleteTx (txId, userId)))
     get "/tx-successful-toast" Handlers.Partials.txSuccessfulToast
-    post "/bought" (withUserId Handlers.Form.createTx)
     
     // Notes
     get "/take-a-note" (withUserId Handlers.Partials.notesForm)
