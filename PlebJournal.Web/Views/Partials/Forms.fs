@@ -71,13 +71,17 @@ let importForm (errs: string list) =
                 ]
             ]
     
-let newTxsForm (errs: string list) =
+let newTxsForm (vm: CreateTransactionVm) =
+    let fiatOption (fiatOption: string) (preferredFiat: Fiat) =
+        let attrs = [ _value fiatOption; ] @ (if preferredFiat.ToString() = fiatOption then [ _selected ] else []) 
+        option attrs [ str fiatOption ]
+    
     form
-        [ _hxPost "/bought"
+        [ _hxPost "/tx"
           _hxTarget "this"
           _hxSwap "outerHTML" ]
         [
-            div [ _class "row" ] (errs |> List.map (fun e -> div [ _class "col-sm-12 text-red" ] [ str e ]))
+            div [ _class "row" ] (vm.Errors |> List.map (fun e -> div [ _class "col-sm-12 text-red" ] [ str e ]))
             
             div [ _class "mb-3" ] [
                 div [ _class "col-sm-12" ] [
@@ -88,7 +92,7 @@ let newTxsForm (errs: string list) =
                         _name "date"
                         _required
                         _class "form-control"
-                        _value (DateTime.Now.ToString("yyyy-MM-ddTHH:mm"))
+                        _value (vm.Now.ToString("yyyy-MM-ddTHH:mm"))
                         ]
                 ]
             ]            
@@ -135,8 +139,9 @@ let newTxsForm (errs: string list) =
                 div [ _class "col-sm-12" ] [
                     label [ _class "form-label"; _required; _min "0" ] [ str "Fiat Currency" ]
                     select [ _type "text"; _name "fiat"; _required; _class "form-select" ] [
-                        option [ _value "CAD" ] [ str "CAD" ]
-                        option [ _value "USD" ] [ str "USD" ]
+                        fiatOption "CAD" vm.PreferredFiat
+                        fiatOption "USD" vm.PreferredFiat
+                        fiatOption "EUR" vm.PreferredFiat
                     ]
                     div [ _class "form-text" ] [ str "Fiat currency involved in the transaction" ]
                 ]
@@ -152,7 +157,7 @@ let newTxsForm (errs: string list) =
             ]
         ]
     
-let newTxModal =
+let newTxModal (vm: CreateTransactionVm) =
     div [] [
         div [
             _class "modal modal-backdrop fade show"
@@ -171,14 +176,7 @@ let newTxModal =
                                 button [ _type "button"; _class "btn-close"; _onclick "closeModal()" ] []
                             ]
                             div [ _class "modal-body" ] [
-                                newTxsForm []
-                                script [] [
-                                    rawText
-                                        """
-                                        var timezoneOffset = new Date().getTimezoneOffset();
-                                        document.getElementById("time-zone-offset").value = timezoneOffset; 
-                                        """
-                                    ]                
+                                newTxsForm vm
                             ] ] ]
                    ]
     ]
@@ -694,7 +692,9 @@ let userSettings (settings: UserSettingsVm) =
             div [ _class "col-sm-12 col-md-4" ] [
                 label [ _class "form-label required"; _required;  ] [ str "Timezone" ]
                 select [ _type "button"; _name "Timezone"; _required; _class "form-select" ]
-                    (tzs |> List.map (fun (id, name) -> option [ _value id ] [ str name ] ))
+                    (settings.AllZones |> List.map (fun (id) ->
+                        let selected = if id = settings.Timezone then [ _selected ] else []
+                        option ([ _value id ] @ selected)  [ str id ] ))
             ]
         ]
         div [ _class "row mb-3" ] [
@@ -786,9 +786,6 @@ let dcaCalculatorForm (generateDca: GenerateRequest) =
                             durationOptionDropdown "Years"
                         ]
                     ]
-            
-                    
-
                 ]
             ]
         ]

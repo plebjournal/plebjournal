@@ -10,6 +10,7 @@ open LNURL
 open Microsoft.AspNetCore.Http
 open Microsoft.AspNetCore.Identity
 open Microsoft.Extensions.Logging
+open NodaTime
 open QRCoder
 open NBitcoin
 open NBitcoin.Crypto
@@ -65,12 +66,14 @@ module Partials =
         fun next ctx -> task {
             let db = ctx.GetService<PlebJournalDb>()
             let! preferredFiat = UserSettings.getPreferredFiat db userId
+            let! preferredTz = UserSettings.getTimezone db userId
             let! user = PlebUsers.findById db userId
             let vm =
                 { UserId = userId
                   UserName = user.Value.UserName
                   PreferredFiat = preferredFiat
-                  Timezone = "" }
+                  AllZones = Timezone.allZoneIds () 
+                  Timezone = preferredTz.Id }
             return! htmlView (Partials.Forms.userSettings vm) next ctx
         }
             
@@ -84,27 +87,37 @@ module Partials =
                     claim |> Option.map (fun c -> c.Value)
             htmlView (Partials.User.userNav user) next ctx
     
-    let boughtBitcoinForm: HttpHandler =
-        htmlView Partials.Forms.newTxModal
+    let createTransaction (userId: Guid): HttpHandler =
+        fun next ctx ->
+            let db = ctx.GetService<PlebJournalDb>()
+            task {
+                let! fiat = UserSettings.getPreferredFiat db userId
+                let! tz = UserSettings.getTimezone db userId
+                let now = Timezone.currentTimeIn tz
+                let vm = { PreferredFiat =  fiat; Now = now.ToDateTimeUnspecified(); Errors = [] }
+                return! htmlView (Partials.Forms.newTxModal vm) next ctx
+            }
         
     let notesForm (userId: Guid): HttpHandler =
         fun next ctx ->
             let db = ctx.GetService<PlebJournalDb>()
             task {
                 let! preferredFiat = UserSettings.getPreferredFiat db userId
+                let! tz = UserSettings.getTimezone db userId
                 let! currentPrice = CurrentPrice.Read.getCurrentPrice db preferredFiat
+                
+                let now = Timezone.currentTimeIn tz 
                 
                 let model =
                     { CurrentPrice = currentPrice
                       Fiat = preferredFiat
-                      CurrentDate = DateTime.Now }
+                      CurrentDate = now.ToDateTimeUnspecified() }
                 return! htmlView (Partials.Forms.newNoteModal model) next ctx
             }
         
     let txDetails (txId: Guid, userId: Guid) : HttpHandler =
         fun next ctx ->
             let db = ctx.GetService<PlebJournalDb>()
-            let users = ctx.GetService<UserManager<PlebUser>>()
             task {
                 let! tx = Transactions.Read.getTxById db userId txId
                 let! price = CurrentPrice.Read.getCurrentPrice db CAD
@@ -130,7 +143,7 @@ module Partials =
                     
                 return! resp next ctx
             }
-            
+
     let editForm (txId: Guid, userId: Guid) : HttpHandler =
         fun next ctx ->
             let db = ctx.GetService<PlebJournalDb>()
@@ -400,7 +413,7 @@ module Form =
                     let! user = db.Users.FindAsync(token.Value.UserId)
                     do! signInManager.SignInAsync(user, false)
                     logger.LogInformation("User {userName} Signed in with LNURL AUTH", user.UserName)
-                    let welcome = withHxRedirect "/" >=> json ()
+                    let welcome = withHxRedirect "/settings" >=> json ()
                     return! welcome next ctx
                 else
                     return! Successful.OK () next ctx
@@ -444,9 +457,10 @@ module Form =
             | Btc -> Domain.Btc(createTx.BtcAmount * 1.0m<btc>)
             | Sats -> Domain.Sats(int64 createTx.BtcAmount * 1L<sats>)
             
-        let toDomain (createTx: CreateBtcTransaction) =
-            let withOffset = createTx.Date.AddMinutes(createTx.TimeZoneOffset)
-            let txDate = DateTime.SpecifyKind(withOffset, DateTimeKind.Utc)
+        let toDomain (createTx: CreateBtcTransaction) (tz: DateTimeZone) =
+            let txDate =
+                Timezone.treatAsUserTimeZone tz createTx.Date |> fun d -> d.ToDateTimeUtc()
+                
             match createTx.Type with
             | Buy ->
                 Domain.Buy
@@ -476,18 +490,21 @@ module Form =
             task {
                 let! boughtBtc = ctx.BindFormAsync<CreateBtcTransaction>()
                 let validated = Validation.Transaction.validateNewTransaction boughtBtc
+                let! tz = UserSettings.getTimezone db userId
                 match validated with
                 | Ok tx ->
-                    let domain = toDomain tx
+                    let domain = toDomain tx tz
                     do! Transactions.Insert.insertTx db domain userId
                     let withTriggers = withHxTriggerManyAfterSettle [
                         "tx-created", ""
                         "showMessage", Alerts.alert domain
                     ]
+                    let vm = { Now = boughtBtc.Date; PreferredFiat = boughtBtc.Fiat; Errors = [] }
                     return!
-                        (withTriggers >=> htmlView (Views.Partials.Forms.newTxsForm [])) next ctx
+                        (withTriggers >=> htmlView (Views.Partials.Forms.newTxsForm vm)) next ctx
                 | Error errs ->
-                    return! (htmlView (Views.Partials.Forms.newTxsForm errs)) next ctx
+                    let vm = { Now = boughtBtc.Date; PreferredFiat = boughtBtc.Fiat; Errors = errs }
+                    return! (htmlView (Views.Partials.Forms.newTxsForm vm)) next ctx
             }
                     
     let formula: HttpHandler =
@@ -543,10 +560,8 @@ module Form =
             | Btc -> Domain.Btc(editTx.Amount * 1.0m<btc>)
             | Sats -> Domain.Sats(int64 editTx.Amount * 1L<sats>)
 
-        let toDomain (editTx: EditBtcTransaction) =
-            let withOffset = editTx.Date.AddMinutes(editTx.TimeZoneOffset)
-            let txDate = DateTime.SpecifyKind(withOffset, DateTimeKind.Utc)
-
+        let toDomain (editTx: EditBtcTransaction) (tz: DateTimeZone) =
+            let txDate = Timezone.treatAsUserTimeZone tz editTx.Date |> fun zdt -> zdt.ToDateTimeUtc()
             match editTx.Type with
             | Buy ->
                 Domain.Buy
@@ -575,13 +590,14 @@ module Form =
             let db = ctx.GetService<PlebJournalDb>()
             task {
                 let! update = ctx.BindFormAsync<EditBtcTransaction>()
+                let! tz = UserSettings.getTimezone db userId
                 let validated = Validation.Transaction.validateEditedTransaction update
                 match validated with
                 | Error e ->
                     let! t = Transactions.Read.getTxById db userId txId
                     return! (htmlView (Views.Partials.Forms.editTxForm t.Value e)) next ctx
                 | Ok tx ->
-                    let domain = toDomain tx
+                    let domain = toDomain tx tz
                     let! changed = Transactions.Update.updateTx db domain userId
                     let res =
                         match changed with
@@ -602,13 +618,16 @@ module Form =
             let! form = ctx.BindFormAsync<UpdateSettings>()
             
             do! UserSettings.setPreferredFiat db userId form.Fiat
+            do! UserSettings.setTimezone db userId form.Timezone
             let! preferredFiat = UserSettings.getPreferredFiat db userId
+            let! preferredTz = UserSettings.getTimezone db userId
             let! user = PlebUsers.findById db userId
             let vm =
                 { UserId = userId
                   UserName = user.Value.UserName
                   PreferredFiat = preferredFiat
-                  Timezone = "" }
+                  AllZones = Timezone.allZoneIds () 
+                  Timezone = preferredTz.Id }
             return! htmlView (Partials.Forms.userSettings vm) next ctx
         }
         

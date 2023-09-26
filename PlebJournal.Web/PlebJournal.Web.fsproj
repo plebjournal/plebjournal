@@ -6,11 +6,11 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <None Include="Scripts\scratch.fsx" />
         <Compile Include="Config.fs" />
         <Compile Include="Json.fs" />
         <None Include="Scripts\InvestigateMA.fsx" />
         <None Include="Scripts\SetupData.fsx" />
+        <Compile Include="Timezone.fs" />
         <Compile Include="Repository.fs" />
         <Compile Include="Mempool.Space.fs" />
         <Compile Include="CoinGecko.fs" />
@@ -61,6 +61,7 @@
       <PackageReference Include="Giraffe.ViewEngine.Htmx" Version="1.8.4" />
       <PackageReference Include="LNURL" Version="0.0.31" />
       <PackageReference Include="NBitcoin" Version="7.0.30" />
+      <PackageReference Include="NodaTime" Version="3.1.9" />
       <PackageReference Include="QRCoder" Version="1.4.3" />
       <PackageReference Include="Quartz" Version="3.5.0" />
       <PackageReference Include="Quartz.AspNetCore" Version="3.5.0" />
