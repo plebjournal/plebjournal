@@ -29,7 +29,9 @@ open Stacker.Web.Views.Pages
 open Repository
 
 module Pages =
-    let index: HttpHandler = Index.indexPage |> Layout.withLayoutNoHeader |> htmlView
+    let index: HttpHandler =
+        let landingPage = Index.indexPage |> Layout.withLayoutNoHeader |> htmlView
+        requiresAuthentication landingPage >=> redirectTo false "/dashboard"    
     
     let dashboard: HttpHandler = Dashboard.dashboardPage |> Layout.withLayout |> htmlView
 

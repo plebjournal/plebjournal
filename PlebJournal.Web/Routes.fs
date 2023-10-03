@@ -26,7 +26,7 @@ let logout : HttpHandler =
         task {
             let signInManager = ctx.GetService<SignInManager<PlebUser>>()
             do! signInManager.SignOutAsync()
-            return! redirectTo false "/login" next ctx
+            return! redirectTo false "/" next ctx
         }
 
 let secureRoutes = withAuth >=> router {

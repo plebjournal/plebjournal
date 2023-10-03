@@ -87,6 +87,14 @@ let createAccountPage =
                     h2 [ _class "h2 text-center mb-4" ] [ str "Create an Account" ]
                     createAccountForm None
                 ]
+                div [ _class "hr-text" ] [ str "OR" ]
+                div [ _class "card-body" ] [
+                    div [ _class "row" ] [
+                        div [ _class "col text-center" ] [
+                            a [ _href "/login/lnauth"; _class "btn" ] [ str "⚡️ Login with Lightning" ]
+                        ]
+                    ]
+                ]
             ]
         ]
     ]
