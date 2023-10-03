@@ -39,7 +39,7 @@ let transactionsPage =
         div [ _class "col-sm-12" ] [
             div [
                 _hxGet "/history"
-                _hxTrigger "revealed, bought from:body, tx-deleted from:body, tx-updated from:body"
+                _hxTrigger "revealed, tx-created from:body, tx-deleted from:body, tx-updated from:body"
             ] []
         ]
     ]

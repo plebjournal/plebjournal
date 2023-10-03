@@ -51,44 +51,50 @@ let createAccountForm (errs: CreateAccountErrors option) =
                 div [] [  ]
             ]
             div [ _class "mb-3" ] [
-                label [ _class "form-label required"; _required;  ] [ str "Default Fiat" ]
+                label [ _class "form-label required"; _required;  ] [ str "Fiat" ]
                 select [ _type "button"; _name "Fiat"; _required; _class "form-select" ] [
                     option [ _value "USD"; _selected ] [ str "USD" ]
                     option [ _value "CAD"; ] [ str "CAD" ]
                     option [ _value "EUR"; ] [ str "EUR" ]
                 ]
             ]
-            
         ]
-        div [ _class "row mb-3" ] [
+        div [ _class "form-footer" ] [
+            button [ _type "submit"; _class "btn btn-primary w-100" ] [ str "Create Account" ]
+        ]
+        
+        div [ _class "row mb-3 text-center" ] [
             div [ _class "loading-spinner"; _class "col" ] [
                 div [ _class "spinner-border text-blue"; ] []    
             ]
-            div [ _class "col" ] [
-                a [ _href "/login"; _class "btn btn-secondary" ] [ str "Cancel" ]
-            ]
-            div [ _class "col-auto" ] [
-                button [ _type "submit"; _class "btn btn-primary" ] [ str "Create Account" ]
-            ]       
+        ]
+        
+        div [ _class "text-center text-secondary mt-3" ] [
+            str "Already have an account? "
+            a [ _href "/login" ] [ str "Sign in" ]
         ]
     ]
 
 
 let createAccountPage =
     [
-        div [ _class "row mb-4" ] [
-            div [ _class "col" ] [
-                h2 [ _class "page-title" ] [ str "Create Account" ]
+        div [ _class "container container-tight" ] [
+            div [ _class "text-center" ] [
+                h1 [ _class "h1" ] [ str "Pleb Journal" ]
             ]
-        ]
-        
-        div [ _class "row-mb-4" ] [
-            div [ _class "col-md-12 col-lg-6" ] [
-                div [ _class "card" ] [
-                    div [ _class "card-body" ] [
-                        createAccountForm None
+            div [ _class "card card-md" ] [
+                div [ _class "card-body" ] [
+                    h2 [ _class "h2 text-center mb-4" ] [ str "Create an Account" ]
+                    createAccountForm None
+                ]
+                div [ _class "hr-text" ] [ str "OR" ]
+                div [ _class "card-body" ] [
+                    div [ _class "row" ] [
+                        div [ _class "col text-center" ] [
+                            a [ _href "/login/lnauth"; _class "btn" ] [ str "⚡️ Login with Lightning" ]
+                        ]
                     ]
-                ]    
+                ]
             ]
         ]
-    ]    
+    ]

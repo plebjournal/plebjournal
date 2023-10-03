@@ -8,6 +8,43 @@ body {
     font-feature-settings: "cv03", "cv04", "cv11";
 }
 
+h1.giga {
+    font-size: 48px;
+    line-height: 64px;
+}
+.giga-container {
+    margin-top: 6rem!important;
+    margin-bottom: 6rem!important;
+}
+
+.giga-secondary {
+    font-size: 20px;
+    line-height: 30px;
+}
+
+.shape-rounded {
+    border-radius: 50%;
+    display: inline-flex;
+}
+
+.shape-green {
+    background: #2f9e441a;
+    color: #2f9e44;
+}
+
+img.landing-dashboard {
+    border-radius: 1%;
+    background-color: white;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+}
+
+.feature-item {
+    display: flex;
+    align-items: center;
+    font-size: 16px;
+    line-height: 32px;
+}
+
 .show {
     display: block;
 }

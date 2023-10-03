@@ -29,7 +29,11 @@ open Stacker.Web.Views.Pages
 open Repository
 
 module Pages =
-    let index: HttpHandler = Index.indexPage |> Layout.withLayout |> htmlView
+    let index: HttpHandler =
+        let landingPage = Index.indexPage |> Layout.withLayoutNoHeader |> htmlView
+        requiresAuthentication landingPage >=> redirectTo false "/dashboard"    
+    
+    let dashboard: HttpHandler = Dashboard.dashboardPage |> Layout.withLayout |> htmlView
 
     let transactions: HttpHandler =
         Transactions.transactionsPage |> Layout.withLayout |> htmlView
@@ -47,13 +51,13 @@ module Pages =
         Workbench.workbenchPage |> Layout.withLayout |> htmlView
     
     let login: HttpHandler =
-        Login.loginPage |> Layout.withLayout |> htmlView
+        Login.loginPage |> Layout.withLayoutNoHeader |> htmlView
         
     let lnAuth: HttpHandler =
-        Login.lnAuthPage |> Layout.withLayout |> htmlView
+        Login.lnAuthPage |> Layout.withLayoutNoHeader |> htmlView
         
     let createAccount: HttpHandler =
-        CreateAccount.createAccountPage |> Layout.withLayout |> htmlView
+        CreateAccount.createAccountPage |> Layout.withLayoutNoHeader |> htmlView
             
     let dcaCalculator: HttpHandler =
         DcaCalculator.dcaCalculatorPage |> Layout.withLayout |> htmlView
@@ -306,7 +310,7 @@ module Form =
             let userManager = ctx.GetService<UserManager<PlebUser>>()
             let signInManager = ctx.GetService<SignInManager<PlebUser>>()
             let db = ctx.GetService<PlebJournalDb>()
-            let success = withHxRedirect "/" >=> htmlView (CreateAccount.createAccountForm None)
+            let success = withHxRedirect "/dashboard" >=> htmlView (CreateAccount.createAccountForm None)
             let backToForm err = setStatusCode 422 >=> htmlView (CreateAccount.createAccountForm (Some err))
             
             task {
@@ -348,13 +352,13 @@ module Form =
                     let! res = signInManager.PasswordSignInAsync(
                         form.Username,
                         form.Password,
-                        false,
+                        form.Remember |> Option.defaultValue false,
                         false
                     )
                     logger.LogInformation("Login result {res}", res)
                     match res.Succeeded with
                     | true ->
-                        let a = withHxRedirect "/" >=> htmlView (Login.loginForm None)
+                        let a = withHxRedirect "/dashboard" >=> htmlView (Login.loginForm None)
                         return! a next ctx
                     | false -> 
                         return! backToLoginForm "Invalid username/password" next ctx
