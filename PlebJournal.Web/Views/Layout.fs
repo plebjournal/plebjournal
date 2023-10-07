@@ -29,8 +29,9 @@ let private htmlHead =
               []
           script [ _src "/js/toast.js" ] []
           script [ _src "/js/modal-helper.js" ] []
-          title [] [ str "Pleb Journal" ] ]
-
+          title [] [ str "Pleb Journal - Stack sats and keep track of your Bitcoin porfolio" ]
+          meta [ _name "description"; _content "Track your bitcoin portfolio. Stack sats, take notes, and watch NGU. " ]
+          meta [ _name "keywords"; _content "Bitcoin, Portfolio, Notes, NGU, DCA, Dollar Cost Averaging, stacking sats" ] ]
 
 let private appHeader =
     header [ _class "navbar navbar-expand-md navbar-light" ] [
