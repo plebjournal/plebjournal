@@ -23,7 +23,7 @@ let dashboardPage =
                         _class "btn btn-primary d-sm-inline-block"
                         _hxTrigger "click"
                         _hxTarget "#modal-container"
-                        _hxGet "/bought"
+                        _hxGet "/tx/new"
                     ] [
                         str "Enter Transaction"
                     ]
