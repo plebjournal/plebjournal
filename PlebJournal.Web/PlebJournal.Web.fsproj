@@ -25,6 +25,7 @@
         <Compile Include="Views\Pages\Index.fs" />
         <Compile Include="Views\Pages\Dashboard.fs" />
         <Compile Include="Views\Pages\Transactions.fs" />
+        <Compile Include="Views\Pages\Charts.fs" />
         <Compile Include="Views\Pages\Notes.fs" />
         <Compile Include="Views\Pages\BlockchainInfo.fs" />
         <Compile Include="Views\Pages\Indicators.fs" />

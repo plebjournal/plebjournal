@@ -15,7 +15,7 @@ let notesPage =
             ]
             div [ _class "col-auto" ] [
                 button [
-                    _class "btn btn-primary d-none d-sm-inline-block"
+                    _class "btn btn-primary"
                     _hxTrigger "click"
                     _hxTarget "#modal-container"
                     _hxGet "/take-a-note"

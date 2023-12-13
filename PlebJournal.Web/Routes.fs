@@ -32,6 +32,7 @@ let logout : HttpHandler =
 let secureRoutes = withAuth >=> router {
     // Pages
     get "/dashboard" Handlers.Pages.dashboard
+    get "/charts" Handlers.Pages.charts
     get "/transactions" Handlers.Pages.transactions
     get "/notes" Handlers.Pages.notes
     get "/blockchaininfo" Handlers.Pages.blockChainInfo
@@ -61,7 +62,7 @@ let secureRoutes = withAuth >=> router {
     getf "/notes/%O" (fun (noteId: Guid) -> withUserId (fun userId -> Handlers.Form.noteDetails(noteId, userId)))
         
     // DCA Calculator
-    post "/dca-calculator" (Handlers.Form.dcaCalculation)
+    post "/dca-calculator" Handlers.Form.dcaCalculation
     
     // Workbench
     post "/workbench/formula" Handlers.Form.formula
@@ -94,6 +95,7 @@ let secureRoutes = withAuth >=> router {
     get "/api/200-wma" (withUserId Handlers.Api.``200 wma api``)
     get "/api/workbench-config" Handlers.Api.workbenchConfig
     get "/api/fiat-value-chart-config" (withUserId Handlers.Api.fiatValueChartConfig)
+    get "/api/fiat-value-apex-config" (withUserId Handlers.Api.fiatValueApexChart)
     get "/api/dca-calculator" (withUserId Handlers.Api.dcaCalculatorChartConfig)
     get "/api/btc-price-chart" (withUserId Handlers.Api.btcPriceChart)
 }

@@ -34,6 +34,8 @@ module Pages =
         requiresAuthentication landingPage >=> redirectTo false "/dashboard"    
     
     let dashboard: HttpHandler = Dashboard.dashboardPage |> Layout.withLayout |> htmlView
+    
+    let charts: HttpHandler = Charts.chartsPage |> Layout.withLayout |> htmlView
 
     let transactions: HttpHandler =
         Transactions.transactionsPage |> Layout.withLayout |> htmlView
@@ -862,6 +864,32 @@ module Api =
                 return! json config next ctx
         }
             
+    let fiatValueApexChart (userId: Guid) : HttpHandler =
+        fun next ctx ->
+            let db = ctx.GetService<PlebJournalDb>()
+            task {
+                let! preferredFiat = UserSettings.getPreferredFiat db userId
+                let! txs = Transactions.Read.getAllTxsForUser db userId
+                let! prices = Prices.Read.getPrices db preferredFiat
+                let res = Calculate.portfolioHistoricalValue txs prices
+
+                let apexCharts = {|
+                    name = "Value"
+                    data = res |> List.map (fun (date, _, value) -> {| x = date.Date; y = Calculate.twoDecimals value |} )  
+                |}
+                
+                let config = {|
+                    traces = apexCharts
+                    dates = {|
+                        oneMonth = DateTime.Now.AddMonths(-1)
+                        sixMonths = DateTime.Now.AddMonths(-6)
+                        oneYear = DateTime.Now.AddYears(-1)
+                    |}
+                |}
+                
+                return! json config next ctx
+            }
+            
     let dcaCalculatorChartConfig (userId: Guid): HttpHandler =
         fun next ctx ->
             let db = ctx.GetService<PlebJournalDb>()
@@ -916,7 +944,7 @@ module Api =
             let db = ctx.GetService<PlebJournalDb>()
             task {
                 let! preferredFiat = UserSettings.getPreferredFiat db userId
-                let! prices = Prices.Read.getPricesUntilDate db preferredFiat (DateTime.UtcNow.AddMonths(-1))
+                let! prices = Prices.Read.getPricesUntilDate db preferredFiat (DateTime.UtcNow.AddMonths(-6))
                 let! cp = CurrentPrice.Read.getCurrentPrice db preferredFiat
                 
                 let currentPrice = Price(

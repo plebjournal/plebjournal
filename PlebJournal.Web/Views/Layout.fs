@@ -113,6 +113,11 @@ let private navbar =
                                   li
                                       [ _class "nav-item" ]
                                       [ a
+                                            [ _class "nav-link"; _href "/charts" ]
+                                            [ span [ _class "nav-link-title" ] [ str "Charts" ] ] ]                                      
+                                  li
+                                      [ _class "nav-item" ]
+                                      [ a
                                             [ _class "nav-link"; _href "/notes" ]
                                             [ span [ _class "nav-link-title" ] [ str "Notes" ] ] ]
                                   li
