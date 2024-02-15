@@ -143,7 +143,11 @@ module Validation =
                 
                     if asSats < 1L<sats> then Error "Must be a positive amount of btc" else Ok asSats
             let validateFiatAmount (tx: CreateBtcTransaction) =
-                if tx.FiatAmount <= 0.0m then Error "Must be positive Fiat amount" else Ok tx.FiatAmount
+                match tx.Type with
+                | Buy -> if tx.FiatAmount <= 0.0m then Error "Must be positive Fiat amount" else Ok tx.FiatAmount
+                | Sell -> if tx.FiatAmount <= 0.0m then Error "Must be positive Fiat amount" else Ok tx.FiatAmount
+                | Income -> Ok tx.FiatAmount
+                | Spend -> Ok tx.FiatAmount
             let validateDate (tx: CreateBtcTransaction) =
                 match tx.Date with
                 | d when d < DateTime(2009, 01, 01) -> Error "Bitcoin wasn't invented yet!"
